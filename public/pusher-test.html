@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pusher Connection Test - Sistem Antrian</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .status-box {
+            background: #f5f5f5;
+            border-left: 4px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .status-box.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .status-box.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .status-box.info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+            color: #0c5460;
+        }
+        .status-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        .info-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+        .info-section h3 {
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .info-line {
+            margin: 5px 0;
+            color: #666;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .events-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+        .log-info {
+            color: #00ccff;
+        }
+        .log-success {
+            color: #00ff00;
+        }
+        .log-error {
+            color: #ff4444;
+        }
+        .log-event {
+            color: #ffaa00;
+        }
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Pusher Connection Test</h1>
+        <p class="subtitle">Sistem Antrian Digital - Real-time WebSocket Status</p>
+
+        <div id="statusDisplay"></div>
+
+        <div class="info-section">
+            <h3>📋 Configuration</h3>
+            <div class="info-line"><strong>App ID:</strong> 2074916</div>
+            <div class="info-line"><strong>Cluster:</strong> ap1</div>
+            <div class="info-line"><strong>Channel:</strong> antrian</div>
+            <div class="info-line"><strong>Event:</strong> antrian.dipanggil</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="testConnection">🧪 Test Connection</button>
+            <button class="btn-secondary" id="clearLog">🗑️ Clear Log</button>
+        </div>
+
+        <div id="eventsLog" class="events-log">
+            <div class="log-entry log-info">[INFO] Waiting for test...</div>
+        </div>
+    </div>
+
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+    <script>
+        const logContainer = document.getElementById('eventsLog');
+        const statusDisplay = document.getElementById('statusDisplay');
+        const testBtn = document.getElementById('testConnection');
+        const clearBtn = document.getElementById('clearLog');
+
+        let pusher = null;
+        let channel = null;
+
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateStatus(message, isSuccess = null) {
+            let statusClass = 'info';
+            let icon = 'ℹ️';
+
+            if (isSuccess === true) {
+                statusClass = 'success';
+                icon = '✅';
+            } else if (isSuccess === false) {
+                statusClass = 'error';
+                icon = '❌';
+            }
+
+            statusDisplay.innerHTML = `
+                <div class="status-box ${statusClass}">
+                    <span class="status-icon">${icon}</span>${message}
+                </div>
+            `;
+        }
+
+        function initPusher() {
+            return new Promise((resolve, reject) => {
+                try {
+                    // Enable Pusher logging in development
+                    Pusher.logToConsole = true;
+
+                    log('Initializing Pusher...', 'info');
+
+                    pusher = new Pusher('d05c41532b18dfd78059', {
+                        cluster: 'ap1',
+                        encrypted: true
+                    });
+
+                    log('Pusher instance created', 'success');
+
+                    // Connection events
+                    pusher.connection.bind('connecting', function() {
+                        log('Connecting to Pusher...', 'info');
+                        updateStatus('🔄 Connecting to Pusher WebSocket...', null);
+                    });
+
+                    pusher.connection.bind('connected', function() {
+                        log('✅ Connected to Pusher!', 'success');
+                        updateStatus('✅ Successfully connected to Pusher WebSocket!', true);
+                        resolve(true);
+                    });
+
+                    pusher.connection.bind('error', function(err) {
+                        log(`❌ Connection error: ${err.data.code} - ${err.data.message}`, 'error');
+                        updateStatus(`❌ Connection error: ${err.data.message}`, false);
+                        reject(err);
+                    });
+
+                    pusher.connection.bind('disconnected', function() {
+                        log('⚠️ Disconnected from Pusher', 'error');
+                        updateStatus('⚠️ Disconnected from Pusher', false);
+                    });
+
+                    pusher.connection.bind('unavailable', function() {
+                        log('❌ Pusher unavailable', 'error');
+                        updateStatus('❌ Pusher service unavailable', false);
+                        reject(new Error('Pusher unavailable'));
+                    });
+
+                    pusher.connection.bind('failed', function() {
+                        log('❌ Failed to connect to Pusher', 'error');
+                        updateStatus('❌ Failed to connect to Pusher', false);
+                        reject(new Error('Connection failed'));
+                    });
+
+                } catch (error) {
+                    log(`❌ Error initializing Pusher: ${error.message}`, 'error');
+                    updateStatus(`❌ Error initializing Pusher: ${error.message}`, false);
+                    reject(error);
+                }
+            });
+        }
+
+        function subscribeToChannel() {
+            return new Promise((resolve, reject) => {
+                try {
+                    log('Subscribing to "antrian" channel...', 'info');
+
+                    channel = pusher.subscribe('antrian');
+
+                    channel.bind('pusher:subscription_succeeded', function() {
+                        log('✅ Successfully subscribed to "antrian" channel', 'success');
+                        resolve(true);
+                    });
+
+                    channel.bind('pusher:subscription_error', function(status) {
+                        log(`❌ Subscription error: Status ${status}`, 'error');
+                        reject(new Error(`Subscription error: ${status}`));
+                    });
+
+                    channel.bind('antrian.dipanggil', function(data) {
+                        log(`🎵 Event received: ${JSON.stringify(data)}`, 'event');
+                        console.log('📢 Antrian dipanggil:', data);
+                    });
+
+                } catch (error) {
+                    log(`❌ Error subscribing to channel: ${error.message}`, 'error');
+                    reject(error);
+                }
+            });
+        }
+
+        async function testConnection() {
+            testBtn.disabled = true;
+            logContainer.innerHTML = '';
+            updateStatus('🔄 Testing Pusher connection...', null);
+
+            try {
+                log('Starting connection test...', 'info');
+                log('Step 1: Initialize Pusher SDK', 'info');
+                await initPusher();
+
+                log('Step 2: Subscribe to channels', 'info');
+                await subscribeToChannel();
+
+                log('Step 3: Waiting for events...', 'info');
+                log('', 'info');
+                log('✅ All tests passed! Your Pusher connection is working.', 'success');
+                log('Ready to broadcast antrian events to all displays.', 'success');
+
+                updateStatus('✅ All tests passed! Pusher is connected and ready.', true);
+
+                // Keep connection active for 30 seconds
+                setTimeout(() => {
+                    testBtn.disabled = false;
+                }, 30000);
+
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+                log('Please check your:', 'error');
+                log('1. Internet connection', 'error');
+                log('2. Pusher app credentials', 'error');
+                log('3. Browser console for detailed errors', 'error');
+                updateStatus(`❌ Test failed: ${error.message}`, false);
+                testBtn.disabled = false;
+            }
+        }
+
+        function clearLog() {
+            logContainer.innerHTML = '<div class="log-entry log-info">[INFO] Log cleared</div>';
+        }
+
+        testBtn.addEventListener('click', testConnection);
+        clearBtn.addEventListener('click', clearLog);
+
+        log('Pusher Test Page Ready', 'success');
+        log('Click "🧪 Test Connection" to verify your setup', 'info');
+    </script>
+</body>
+</html>

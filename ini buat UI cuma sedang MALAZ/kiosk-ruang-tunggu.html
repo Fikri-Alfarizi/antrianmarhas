@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ruang Coding Antrian - Kiosk Ruang Tunggu</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<style>
+  /* Import Font (Menggunakan Inter agar konsisten) */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  /* Reset dan Global */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f9fafb; /* Latar belakang abu-abu sangat muda seperti di gambar */
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden; /* Mencegah scroll pada Kiosk */
+  }
+
+  /* Kontainer Utama Kiosk */
+  .kiosk-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 24px 32px;
+  }
+
+  /* Header Kiosk */
+  .kiosk-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-shrink: 0;
+  }
+
+  .kiosk-logo {
+    font-size: 32px;
+    color: #2563eb; /* Warna biru konsisten */
+  }
+
+  .kiosk-brand-info {
+    line-height: 1.4;
+  }
+
+  .hospital-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+  }
+
+  .hospital-address {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  /* Body Kiosk (Layout 2 Kolom) */
+  .kiosk-body {
+    display: grid;
+    grid-template-columns: 320px 1fr; /* Kolom kiri 320px, sisanya untuk grid */
+    gap: 24px;
+    flex: 1; /* Mengisi sisa ruang */
+    overflow: hidden;
+  }
+
+  /* Kolom Kiri: Sidebar Layanan */
+  .service-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    padding-right: 8px; /* Ruang untuk scrollbar */
+  }
+
+  /* Scrollbar styling */
+  .service-sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .service-sidebar::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 6px;
+  }
+
+  .service-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    flex-shrink: 0;
+  }
+
+  .service-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .service-icon {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+  }
+
+  .service-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  /* Warna-warna ikon di sidebar kiri */
+  .service-icon.green { color: #10b981; }
+  .service-icon.blue { color: #3b82f6; }
+  .service-icon.indigo { color: #6366f1; }
+  .service-icon.purple { color: #8b5cf6; }
+
+  .service-queue-info {
+    margin-top: 12px;
+    padding-left: 36px; /* Sejajar dengan teks nama layanan */
+  }
+
+  p.next-label {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  p.next-number {
+    margin: 2px 0 0 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .loket-status {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
+    font-size: 13px;
+    color: #374151;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .status-dot.green {
+    background-color: #16a34a;
+  }
+
+  /* Kolom Kanan: Grid Ruangan */
+  .room-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    overflow-y: auto;
+    padding-bottom: 16px; /* Agar shadow kartu bawah terlihat */
+  }
+  
+  /* Scrollbar styling */
+  .room-grid::-webkit-scrollbar {
+    width: 6px;
+  }
+  .room-grid::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 6px;
+  }
+
+  .room-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    height: 320px; /* Tinggi kartu ruangan tetap */
+  }
+
+  .room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 16px 20px;
+  }
+
+  .room-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .room-title .fa-solid {
+    color: #f59e0b; /* Warna ikon kuning */
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: #fef3c7; /* Latar kuning muda */
+    color: #92400e;      /* Teks kuning tua */
+  }
+
+  .status-badge .status-dot {
+    background: #f59e0b; /* Titik kuning */
+  }
+
+  .room-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    border-top: 1px solid #f3f4f6;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .body-icon {
+    font-size: 40px;
+    color: #d1d5db;
+    margin-bottom: 16px;
+  }
+
+  .body-status {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 4px 0;
+  }
+
+  .body-subtext {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  .room-footer {
+    padding: 16px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .room-footer .fa-solid {
+    font-size: 16px;
+    width: 16px;
+    text-align: center;
+    color: #6b7280;
+  }
+  
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .kiosk-body {
+      grid-template-columns: 1fr; /* Stack kolom */
+      overflow: auto; /* Izinkan scroll di body */
+    }
+    .service-sidebar {
+      overflow-y: visible;
+      padding-right: 0;
+    }
+    .room-grid {
+      overflow-y: visible;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .kiosk-container {
+      padding: 16px;
+    }
+    .kiosk-body {
+      gap: 16px;
+    }
+    .room-grid {
+      grid-template-columns: 1fr; /* Satu kolom di HP */
+    }
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="kiosk-container">
+
+    <header class="kiosk-header">
+      <div class="kiosk-logo">
+        <i class="fa-solid fa-hospital"></i>
+      </div>
+      <div class="kiosk-brand-info">
+        <h1 class="hospital-name">Rumah Sakit Ruang Coding</h1>
+        <p class="hospital-address">Jl. A.H. Nasution No. 34-38, Yosorejo, Metro Timur, Kota Metro - Lampung</p>
+      </div>
+    </header>
+
+    <main class="kiosk-body">
+
+      <aside class="service-sidebar">
+        
+        <div class="service-card">
+          <div class="service-header">
+            <i class="fa-solid fa-stethoscope service-icon green"></i>
+            <span class="service-name">Pemeriksaan Umum</span>
+          </div>
+          <div class="service-queue-info">
+            <p class="next-label">Antrian berikutnya</p>
+            <p class="next-number">Tidak ada antrian</p>
+          </div>
+          <div class="loket-status">
+            <span class="status-dot green"></span>
+            1/1 Loket Aktif
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-header">
+            <i class="fa-solid fa-person-breastfeeding service-icon blue"></i>
+            <span class="service-name">Kesehatan Ibu dan Anak</span>
+          </div>
+          <div class="service-queue-info">
+            <p class="next-label">Antrian berikutnya</p>
+            <p class="next-number">Tidak ada antrian</p>
+          </div>
+          <div class="loket-status">
+            <span class="status-dot green"></span>
+            1/1 Loket Aktif
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-header">
+            <i class="fa-solid fa-tooth service-icon indigo"></i>
+            <span class="service-name">Kesehatan Gigi dan Mulut</span>
+          </div>
+          <div class="service-queue-info">
+            <p class="next-label">Antrian berikutnya</p>
+            <p class="next-number">Tidak ada antrian</p>
+          </div>
+          <div class="loket-status">
+            <span class="status-dot green"></span>
+            1/1 Loket Aktif
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-header">
+            <i class="fa-solid fa-users service-icon purple"></i>
+            <span class="service-name">Keluarga Berencana (KB)</span>
+          </div>
+          <div class="service-queue-info">
+            <p class="next-label">Antrian berikutnya</p>
+            <p class="next-number">Tidak ada antrian</p>
+          </div>
+          <div class="loket-status">
+            <span class="status-dot green"></span>
+            1/1 Loket Aktif
+          </div>
+        </div>
+
+      </aside>
+
+      <section class="room-grid">
+
+        <div class="room-card">
+          <div class="room-header">
+            <div class="room-title">
+              <i class="fa-solid fa-door-closed"></i>
+              <span>Ruang 1</span>
+            </div>
+            <div class="status-badge">
+              <span class="status-dot"></span>
+              Tersedia
+            </div>
+          </div>
+          <div class="room-body">
+            <i class="fa-regular fa-user-clock body-icon"></i>
+            <p class="body-status">Belum ada panggilan</p>
+            <p class="body-subtext">Menunggu antrian berikutnya</p>
+          </div>
+          <div class="room-footer">
+            <i class="fa-solid fa-stethoscope"></i>
+            <span>Pemeriksaan Umum</span>
+          </div>
+        </div>
+        
+        <div class="room-card">
+          <div class="room-header">
+            <div class="room-title">
+              <i class="fa-solid fa-door-closed"></i>
+              <span>Ruang 2</span>
+            </div>
+            <div class="status-badge">
+              <span class="status-dot"></span>
+              Tersedia
+            </div>
+          </div>
+          <div class="room-body">
+            <i class="fa-regular fa-user-clock body-icon"></i>
+            <p class="body-status">Belum ada panggilan</p>
+            <p class="body-subtext">Menunggu antrian berikutnya</p>
+          </div>
+          <div class="room-footer">
+            <i class="fa-solid fa-person-breastfeeding"></i>
+            <span>Kesehatan Ibu dan Anak</span>
+          </div>
+        </div>
+
+        <div class="room-card">
+          <div class="room-header">
+            <div class="room-title">
+              <i class="fa-solid fa-door-closed"></i>
+              <span>Ruang 3</span>
+            </div>
+            <div class="status-badge">
+              <span class="status-dot"></span>
+              Tersedia
+            </div>
+          </div>
+          <div class="room-body">
+            <i class="fa-regular fa-user-clock body-icon"></i>
+            <p class="body-status">Belum ada panggilan</p>
+            <p class="body-subtext">Menunggu antrian berikutnya</p>
+          </div>
+          <div class="room-footer">
+            <i class="fa-solid fa-tooth"></i>
+            <span>Kesehatan Gigi dan Mulut</span>
+          </div>
+        </div>
+
+        <div class="room-card">
+          <div class="room-header">
+            <div class="room-title">
+              <i class="fa-solid fa-door-closed"></i>
+              <span>Ruang 4</span>
+            </div>
+            <div class="status-badge">
+              <span class="status-dot"></span>
+              Tersedia
+            </div>
+          </div>
+          <div class="room-body">
+            <i class="fa-regular fa-user-clock body-icon"></i>
+            <p class="body-status">Belum ada panggilan</p>
+            <p class="body-subtext">Menunggu antrian berikutnya</p>
+          </div>
+          <div class="room-footer">
+            <i class="fa-solid fa-users"></i>
+            <span>Keluarga Berencana (KB)</span>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <script>
+    // Javascript inline
+    // Saat ini tidak ada JS yang diperlukan untuk tampilan statis ini.
+    // Di aplikasi nyata, di sinilah Anda akan meletakkan logika
+    // untuk mengambil data (misalnya via fetch) dan memperbarui DOM.
+    (function() {
+      console.log('Kiosk Ruang Tunggu Dimuat. Mode statis.');
+
+      // Contoh fungsi update (bisa dipanggil via WebSocket atau polling)
+      function updateAntrian(service, nextNumber) {
+        // Logika untuk mencari service-card yang tepat dan mengubah
+        // teks 'Tidak ada antrian' menjadi nomor antrian.
+      }
+
+      function updateRuang(room, status, number) {
+        // Logika untuk mencari room-card yang tepat dan mengubah
+        // status "Belum ada panggilan" menjadi "Memanggil Nomor: X".
+      }
+
+    })();
+  </script>
+
+</body>
+</html>

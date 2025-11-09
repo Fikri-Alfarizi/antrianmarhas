@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ruang Coding Antrian - Cetak Antrian</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<style>
+  /* Import Font (Menggunakan Inter agar konsisten) */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  /* Reset dan Global */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f9fafb; /* Latar abu-abu muda */
+    color: #374151;
+    font-size: 16px;
+    line-height: 1.5;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header Kiosk (Konsisten dengan kios.html) */
+  .kiosk-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 32px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+  }
+
+  .kiosk-logo {
+    font-size: 32px;
+    color: #2563eb; /* Warna biru konsisten */
+  }
+
+  .kiosk-brand-info {
+    line-height: 1.4;
+  }
+
+  .hospital-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+  }
+
+  .hospital-address {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+  
+  /* Konten Utama Kiosk */
+  .kiosk-main {
+    flex: 1; /* Mengisi sisa ruang */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    overflow-y: auto;
+  }
+  
+  .welcome-text {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  
+  .welcome-title {
+    font-size: 40px;
+    font-weight: 800;
+    color: #111827;
+    margin: 0 0 8px 0;
+  }
+  
+  .welcome-subtitle {
+    font-size: 20px;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 500;
+  }
+  
+  /* Grid untuk Tombol Layanan */
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 kolom */
+    gap: 24px;
+    width: 100%;
+    max-width: 1000px; /* Batas lebar */
+  }
+  
+  /* Tombol Layanan (Utama) */
+  .service-button {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px 24px;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .service-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+  }
+  
+  .service-button:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .service-button-icon {
+    font-size: 56px;
+    margin-bottom: 20px;
+  }
+  
+  .service-button-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 4px 0;
+  }
+  
+  .service-button-desc {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+  
+  /* Pewarnaan Ikon */
+  .service-button-icon.green { color: #10b981; }
+  .service-button-icon.blue { color: #3b82f6; }
+  .service-button-icon.indigo { color: #6366f1; }
+  .service-button-icon.purple { color: #8b5cf6; }
+  
+  
+  /* Modal (Pop-up) untuk Struk */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .modal-content {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px;
+    width: 420px;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+  }
+  
+  .modal-overlay.show .modal-content {
+    transform: scale(1);
+  }
+  
+  .modal-icon {
+    font-size: 48px;
+    color: #16a34a;
+    margin-bottom: 16px;
+  }
+  
+  .modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0;
+  }
+  
+  .modal-number {
+    font-size: 96px;
+    font-weight: 800;
+    color: #2563eb;
+    margin: 16px 0;
+    line-height: 1;
+  }
+  
+  .modal-service {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 24px 0;
+  }
+  
+  .modal-info {
+    font-size: 16px;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 500;
+  }
+  
+  .modal-footer {
+    font-size: 14px;
+    color: #9ca3af;
+    margin-top: 32px;
+    border-top: 1px dashed #d1d5db;
+    padding-top: 24px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .kiosk-header {
+      padding: 16px;
+    }
+    .hospital-name { font-size: 18px; }
+    .hospital-address { font-size: 12px; }
+    
+    .kiosk-main {
+      padding: 16px;
+      justify-content: flex-start;
+    }
+    
+    .welcome-title { font-size: 28px; }
+    .welcome-subtitle { font-size: 16px; }
+    
+    .service-grid {
+      grid-template-columns: 1fr; /* 1 kolom di HP */
+      gap: 16px;
+    }
+    
+    .service-button {
+      padding: 24px;
+    }
+    .service-button-icon { font-size: 40px; }
+    .service-button-title { font-size: 20px; }
+    
+    .modal-content {
+      padding: 24px;
+    }
+    .modal-number { font-size: 72px; }
+    .modal-service { font-size: 18px; }
+  }
+
+</style>
+</head>
+<body>
+
+  <header class="kiosk-header">
+    <div class="kiosk-logo">
+      <i class="fa-solid fa-hospital"></i>
+    </div>
+    <div class="kiosk-brand-info">
+      <h1 class="hospital-name">Rumah Sakit Ruang Coding</h1>
+      <p class="hospital-address">Jl. A.H. Nasution No. 34-38, Yosorejo, Metro Timur, Kota Metro - Lampung</p>
+    </div>
+  </header>
+  
+  <main class="kiosk-main">
+    <div class="welcome-text">
+      <h2 class="welcome-title">Selamat Datang</h2>
+      <p class="welcome-subtitle">Silakan pilih layanan untuk mengambil nomor antrian</p>
+    </div>
+    
+    <div class="service-grid">
+      
+      <div class="service-button" data-service="Pemeriksaan Umum">
+        <i class="fa-solid fa-stethoscope service-button-icon green"></i>
+        <h3 class="service-button-title">Pemeriksaan Umum</h3>
+        <p class="service-button-desc">Layanan dokter umum</p>
+      </div>
+      
+      <div class="service-button" data-service="Kesehatan Ibu dan Anak">
+        <i class="fa-solid fa-person-breastfeeding service-button-icon blue"></i>
+        <h3 class="service-button-title">Kesehatan Ibu & Anak</h3>
+        <p class="service-button-desc">Layanan poli KIA</p>
+      </div>
+      
+      <div class="service-button" data-service="Kesehatan Gigi dan Mulut">
+        <i class="fa-solid fa-tooth service-button-icon indigo"></i>
+        <h3 class="service-button-title">Kesehatan Gigi & Mulut</h3>
+        <p class="service-button-desc">Layanan poli gigi</p>
+      </div>
+      
+      <div class="service-button" data-service="Keluarga Berencana (KB)">
+        <i class="fa-solid fa-users service-button-icon purple"></i>
+        <h3 class="service-button-title">Keluarga Berencana</h3>
+        <p class="service-button-desc">Layanan konsultasi KB</p>
+      </div>
+      
+    </div>
+  </main>
+  
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content" id="modalContent">
+      <i class="fa-solid fa-circle-check modal-icon"></i>
+      <h4 class="modal-title" id="modalTitle">Nomor Antrian Anda</h4>
+      <div class="modal-number" id="modalNumber">A-001</div>
+      <h3 class="modal-service" id="modalService">Pemeriksaan Umum</h3>
+      <p class="modal-info">Silakan menunggu nomor Anda dipanggil. Struk sedang dicetak.</p>
+      <div class="modal-footer">
+        Terima kasih atas kunjungan Anda
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // Menyiapkan elemen
+      const serviceButtons = document.querySelectorAll('.service-button');
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalContent = document.getElementById('modalContent');
+      const modalNumber = document.getElementById('modalNumber');
+      const modalService = document.getElementById('modalService');
+
+      // Variabel untuk nomor antrian (disimulasikan)
+      let queueNumber = 1;
+
+      // Audio context untuk suara "beep"
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      function playBeepSound() {
+        try {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = 900; // Frekuensi lebih tinggi untuk "beep"
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.3);
+        } catch (error) {
+          console.error("Gagal memutar suara:", error);
+        }
+      }
+
+      // Menambahkan event listener ke setiap tombol
+      serviceButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const serviceName = this.getAttribute('data-service');
+          
+          // 1. Hasilkan nomor antrian baru (simulasi)
+          const nomor = String(queueNumber).padStart(3, '0');
+          queueNumber++; // Tambah nomor untuk pengunjung berikutnya
+          
+          // 2. Update isi modal
+          modalService.textContent = serviceName;
+          modalNumber.textContent = nomor;
+          
+          // 3. Tampilkan modal
+          modalOverlay.classList.add('show');
+          
+          // 4. Putar suara "beep"
+          playBeepSound();
+          
+          // 5. Simulasikan pencetakan
+          console.log(`MENCETAK: ${serviceName} - Nomor ${nomor}`);
+          
+          // 6. Sembunyikan modal secara otomatis setelah 5 detik
+          setTimeout(() => {
+            modalOverlay.classList.remove('show');
+          }, 5000);
+        });
+      });
+      
+      // Menutup modal jika diklik di luar area konten
+      modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+          modalOverlay.classList.remove('show');
+        }
+      });
+
+    })();
+  </script>
+
+</body>
+</html>

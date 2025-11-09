@@ -1,0 +1,1372 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('username')->unique()->after('name');
+            $table->enum('role', ['admin', 'operator'])->default('operator')->after('password');
+            $table->foreignId('loket_id')->nullable()->constrained('lokets')->onDelete('set null')->after('role');
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif')->after('loket_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['loket_id']);
+            $table->dropColumn(['username', 'role', 'loket_id', 'status']);
+        });
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('settings', function (Blueprint $table) {
+            $table->id();
+            $table->string('logo')->nullable();
+            $table->string('nama_instansi');
+            $table->text('alamat');
+            $table->string('telepon');
+            $table->text('deskripsi')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('settings');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('layanans', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_layanan');
+            $table->string('prefix', 5);
+            $table->tinyInteger('digit')->default(3);
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('layanans');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('lokets', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_loket');
+            $table->foreignId('layanan_id')->constrained('layanans')->onDelete('cascade');
+            $table->enum('status', ['aktif', 'tutup'])->default('aktif');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('lokets');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('antrians', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_antrian');
+            $table->foreignId('layanan_id')->constrained('layanans')->onDelete('cascade');
+            $table->foreignId('loket_id')->nullable()->constrained('lokets')->onDelete('set null');
+            $table->enum('status', ['menunggu', 'dipanggil', 'dilayani', 'selesai', 'batal'])->default('menunggu');
+            $table->datetime('waktu_ambil');
+            $table->datetime('waktu_panggil')->nullable();
+            $table->datetime('waktu_selesai')->nullable();
+            $table->string('qr_code')->nullable();
+            $table->timestamps();
+            
+            $table->index('kode_antrian');
+            $table->index('status');
+            $table->index('waktu_ambil');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('antrians');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('display_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('antrian_id')->constrained('antrians')->onDelete('cascade');
+            $table->foreignId('loket_id')->constrained('lokets')->onDelete('cascade');
+            $table->string('pesan_display');
+            $table->enum('status_warna', ['biru', 'hijau', 'abu', 'merah'])->default('biru');
+            $table->datetime('waktu_tampil');
+            $table->timestamps();
+            
+            $table->index('waktu_tampil');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('display_logs');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('statistik_harian', function (Blueprint $table) {
+            $table->id();
+            $table->date('tanggal');
+            $table->foreignId('layanan_id')->constrained('layanans')->onDelete('cascade');
+            $table->integer('total_menunggu')->default(0);
+            $table->integer('total_dilayani')->default(0);
+            $table->integer('total_selesai')->default(0);
+            $table->integer('total_batal')->default(0);
+            $table->timestamps();
+            
+            $table->unique(['tanggal', 'layanan_id']);
+            $table->index('tanggal');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('statistik_harian');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('device_printers', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_device');
+            $table->string('mac_address')->unique();
+            $table->enum('status', ['tersambung', 'putus'])->default('putus');
+            $table->datetime('last_connected_at')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('device_printers');
+    }
+};
+
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('activity_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('aktivitas');
+            $table->datetime('waktu');
+            $table->string('ip_address')->nullable();
+            $table->timestamps();
+            
+            $table->index('waktu');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('activity_logs');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('username')->unique()->after('name');
+            $table->enum('role', ['admin', 'operator'])->default('operator')->after('password');
+            $table->foreignId('loket_id')->nullable()->constrained('lokets')->onDelete('set null')->after('role');
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif')->after('loket_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['loket_id']);
+            $table->dropColumn(['username', 'role', 'loket_id', 'status']);
+        });
+    }
+};
+
+
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'username',
+        'email',
+        'password',
+        'role',
+        'loket_id',
+        'status',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    public function loket(): BelongsTo
+    {
+        return $this->belongsTo(Loket::class, 'loket_id');
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class, 'user_id');
+    }
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Pengaturan extends Model
+{
+    use HasFactory;
+
+    protected $table = 'settings';
+
+    protected $fillable = [
+        'logo',
+        'nama_instansi',
+        'alamat',
+        'telepon',
+        'deskripsi'
+    ];
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Layanan extends Model
+{
+    use HasFactory;
+
+    protected $table = 'layanans';
+
+    protected $fillable = [
+        'nama_layanan',
+        'prefix',
+        'digit',
+        'status'
+    ];
+
+    public function lokets(): HasMany
+    {
+        return $this->hasMany(Loket::class, 'layanan_id');
+    }
+
+    public function antrians(): HasMany
+    {
+        return $this->hasMany(Antrian::class, 'layanan_id');
+    }
+
+    public function statistikHarians(): HasMany
+    {
+        return $this->hasMany(StatistikHarian::class, 'layanan_id');
+    }
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Loket extends Model
+{
+    use HasFactory;
+
+    protected $table = 'lokets';
+
+    protected $fillable = [
+        'nama_loket',
+        'layanan_id',
+        'status'
+    ];
+
+    public function layanan(): BelongsTo
+    {
+        return $this->belongsTo(Layanan::class, 'layanan_id');
+    }
+
+    public function antrians(): HasMany
+    {
+        return $this->hasMany(Antrian::class, 'loket_id');
+    }
+
+    public function displayLogs(): HasMany
+    {
+        return $this->hasMany(DisplayLog::class, 'loket_id');
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class, 'loket_id');
+    }
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Antrian extends Model
+{
+    use HasFactory;
+
+    protected $table = 'antrians';
+
+    protected $fillable = [
+        'kode_antrian',
+        'layanan_id',
+        'loket_id',
+        'status',
+        'waktu_ambil',
+        'waktu_panggil',
+        'waktu_selesai',
+        'qr_code'
+    ];
+
+    protected $casts = [
+        'waktu_ambil' => 'datetime',
+        'waktu_panggil' => 'datetime',
+        'waktu_selesai' => 'datetime'
+    ];
+
+    public function layanan(): BelongsTo
+    {
+        return $this->belongsTo(Layanan::class, 'layanan_id');
+    }
+
+    public function loket(): BelongsTo
+    {
+        return $this->belongsTo(Loket::class, 'loket_id');
+    }
+
+    public function displayLogs(): HasMany
+    {
+        return $this->hasMany(DisplayLog::class, 'antrian_id');
+    }
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class DisplayLog extends Model
+{
+    use HasFactory;
+
+    protected $table = 'display_logs';
+
+    protected $fillable = [
+        'antrian_id',
+        'loket_id',
+        'pesan_display',
+        'status_warna',
+        'waktu_tampil'
+    ];
+
+    protected $casts = [
+        'waktu_tampil' => 'datetime'
+    ];
+
+    public function antrian(): BelongsTo
+    {
+        return $this->belongsTo(Antrian::class, 'antrian_id');
+    }
+
+    public function loket(): BelongsTo
+    {
+        return $this->belongsTo(Loket::class, 'loket_id');
+    }
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class StatistikHarian extends Model
+{
+    use HasFactory;
+
+    protected $table = 'statistik_harian';
+
+    protected $fillable = [
+        'tanggal',
+        'layanan_id',
+        'total_menunggu',
+        'total_dilayani',
+        'total_selesai',
+        'total_batal'
+    ];
+
+    protected $casts = [
+        'tanggal' => 'date'
+    ];
+
+    public function layanan(): BelongsTo
+    {
+        return $this->belongsTo(Layanan::class, 'layanan_id');
+    }
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class DevicePrinter extends Model
+{
+    use HasFactory;
+
+    protected $table = 'device_printers';
+
+    protected $fillable = [
+        'nama_device',
+        'mac_address',
+        'status',
+        'last_connected_at'
+    ];
+
+    protected $casts = [
+        'last_connected_at' => 'datetime'
+    ];
+}
+
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class ActivityLog extends Model
+{
+    use HasFactory;
+
+    protected $table = 'activity_logs';
+
+    protected $fillable = [
+        'user_id',
+        'aktivitas',
+        'waktu',
+        'ip_address'
+    ];
+
+    protected $casts = [
+        'waktu' => 'datetime'
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class AuthController extends Controller
+{
+    public function showLogin()
+    {
+        if (Auth::check()) {
+            return $this->redirectBasedOnRole();
+        }
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'username' => 'required',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return $this->redirectBasedOnRole();
+        }
+
+        return back()->withErrors([
+            'username' => 'Username atau password salah.',
+        ])->onlyInput('username');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
+    }
+
+    private function redirectBasedOnRole()
+    {
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('petugas.loket.index');
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Antrian;
+use App\Models\Loket;
+use App\Models\Pengaturan;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+
+class DisplayController extends Controller
+{
+    public function index()
+    {
+        $lokets = Loket::with('layanan')->where('status', 'aktif')->get();
+        $pengaturan = Pengaturan::first();
+        return view('display.index', compact('lokets', 'pengaturan'));
+    }
+
+    public function getData()
+    {
+        $lokets = Loket::with(['layanan', 'antrians' => function($query) {
+            $query->whereDate('waktu_ambil', Carbon::today())
+                  ->whereIn('status', ['dipanggil', 'dilayani', 'menunggu'])
+                  ->latest('waktu_panggil');
+        }])->get();
+
+        $data = $lokets->map(function($loket) {
+            $antrianDipanggil = $loket->antrians->where('status', 'dipanggil')->first();
+            $antrianDilayani = $loket->antrians->where('status', 'dilayani')->first();
+            
+            return [
+                'id' => $loket->id,
+                'nama_loket' => $loket->nama_loket,
+                'layanan' => $loket->layanan->nama_layanan ?? 'N/A',
+                'status' => $loket->status,
+                'antrian_dipanggil' => $antrianDipanggil ? $antrianDipanggil->kode_antrian : null,
+                'antrian_dilayani' => $antrianDilayani ? $antrianDilayani->kode_antrian : null,
+            ];
+        });
+
+        return response()->json($data);
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Layanan;
+use App\Models\Antrian;
+use App\Models\Pengaturan;
+use App\Services\LogActivityService;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
+class KiosController extends Controller
+{
+    public function index()
+    {
+        $layanans = Layanan::where('status', 'aktif')->get();
+        $pengaturan = Pengaturan::first();
+        return view('kios.index', compact('layanans', 'pengaturan'));
+    }
+
+    public function cetak(Request $request)
+    {
+        $request->validate([
+            'layanan_id' => 'required|exists:layanans,id',
+        ]);
+
+        $layanan = Layanan::findOrFail($request->layanan_id);
+
+        // Cari nomor antrian terakhir hari ini
+        $lastAntrian = Antrian::where('layanan_id', $layanan->id)
+            ->whereDate('waktu_ambil', Carbon::today())
+            ->orderBy('id', 'desc')
+            ->first();
+
+        // Generate nomor antrian baru
+        if ($lastAntrian) {
+            $lastNumber = (int) substr($lastAntrian->kode_antrian, strlen($layanan->prefix));
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        $kodeAntrian = $layanan->prefix . str_pad($newNumber, $layanan->digit, '0', STR_PAD_LEFT);
+
+        // Generate QR code link to status page
+        $statusUrl = route('status.index') . '?q=' . $kodeAntrian;
+        $qrCode = base64_encode(QrCode::format('png')->size(300)->generate($statusUrl));
+
+        // Simpan antrian
+        $antrian = Antrian::create([
+            'kode_antrian' => $kodeAntrian,
+            'layanan_id' => $layanan->id,
+            'status' => 'menunggu',
+            'waktu_ambil' => now(),
+        ]);
+
+        LogActivityService::antrianCreated($antrian);
+
+        $pengaturan = Pengaturan::first();
+
+        return response()->json([
+            'success' => true,
+            'antrian' => $antrian,
+            'layanan' => $layanan,
+            'pengaturan' => $pengaturan,
+            'qr_code' => 'data:image/png;base64,' . $qrCode,
+        ]);
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Antrian;
+use App\Models\Pengaturan;
+use Illuminate\Http\Request;
+
+class StatusController extends Controller
+{
+    /**
+     * Tampilkan halaman tracking status antrian
+     */
+    public function index()
+    {
+        $pengaturan = Pengaturan::first();
+        return view('status.index', compact('pengaturan'));
+    }
+
+    /**
+     * API untuk mendapatkan status antrian berdasarkan kode
+     */
+    public function check(Request $request)
+    {
+        $request->validate([
+            'kode_antrian' => 'required|string|max:10',
+        ]);
+
+        $antrian = Antrian::where('kode_antrian', strtoupper($request->kode_antrian))
+            ->with(['layanan', 'loket'])
+            ->first();
+
+        if (!$antrian) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Nomor antrian tidak ditemukan',
+            ], 404);
+        }
+
+        // Hitung posisi antrian
+        $posisi = Antrian::where('layanan_id', $antrian->layanan_id)
+            ->where('status', 'menunggu')
+            ->where('id', '<', $antrian->id)
+            ->count() + 1;
+
+        // Status bahasa Indonesia
+        $statusLabel = [
+            'menunggu' => 'Menunggu Dipanggil',
+            'dipanggil' => 'Sedang Dipanggil',
+            'dilayani' => 'Sedang Dilayani',
+            'selesai' => 'Selesai',
+            'batal' => 'Dibatalkan',
+        ][$antrian->status] ?? $antrian->status;
+
+        $statusColor = [
+            'menunggu' => 'warning',
+            'dipanggil' => 'info',
+            'dilayani' => 'primary',
+            'selesai' => 'success',
+            'batal' => 'danger',
+        ][$antrian->status] ?? 'secondary';
+
+        $estimasiWaktu = null;
+        if ($antrian->status === 'menunggu') {
+            // Estimasi: 5 menit per antrian sebelumnya
+            $estimasiWaktu = ($posisi - 1) * 5;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'kode_antrian' => $antrian->kode_antrian,
+                'layanan' => $antrian->layanan->nama_layanan,
+                'status' => $antrian->status,
+                'status_label' => $statusLabel,
+                'status_color' => $statusColor,
+                'loket' => $antrian->loket ? $antrian->loket->nama_loket : null,
+                'posisi' => $antrian->status === 'menunggu' ? $posisi : null,
+                'waktu_ambil' => $antrian->waktu_ambil->format('H:i:s'),
+                'waktu_panggil' => $antrian->waktu_panggil ? $antrian->waktu_panggil->format('H:i:s') : null,
+                'waktu_selesai' => $antrian->waktu_selesai ? $antrian->waktu_selesai->format('H:i:s') : null,
+                'estimasi_waktu' => $estimasiWaktu,
+            ],
+        ]);
+    }
+}
+
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Antrian;
+use App\Models\Layanan;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+
+class AntrianController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Antrian::with(['layanan', 'loket']);
+
+        // Filter berdasarkan layanan
+        if ($request->filled('layanan')) {
+            $query->where('layanan_id', $request->layanan);
+        }
+
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter berdasarkan tanggal
+        if ($request->filled('tanggal')) {
+            $query->whereDate('waktu_ambil', $request->tanggal);
+        } else {
+            // Default hari ini
+            $query->whereDate('waktu_ambil', Carbon::today());
+        }
+
+        $antrians = $query->latest('waktu_ambil')->paginate(20);
+        $layanans = Layanan::all();
+        
+        // Total antrian hari ini
+        $totalHariIni = Antrian::whereDate('waktu_ambil', Carbon::today())->count();
+
+        return view('admin.antrian.index', compact('antrians', 'layanans', 'totalHariIni'));
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Antrian;
+use App\Models\Layanan;
+use App\Models\Loket;
+use App\Models\User;
+use Carbon\Carbon;
+
+class DashboardController extends Controller
+{
+    public function index()
+    {
+        $today = Carbon::today();
+        
+        $statistik = [
+            'total_antrian' => Antrian::whereDate('waktu_ambil', $today)->count(),
+            'menunggu' => Antrian::whereDate('waktu_ambil', $today)->where('status', 'menunggu')->count(),
+            'dipanggil' => Antrian::whereDate('waktu_ambil', $today)->where('status', 'dipanggil')->count(),
+            'dilayani' => Antrian::whereDate('waktu_ambil', $today)->where('status', 'dilayani')->count(),
+            'selesai' => Antrian::whereDate('waktu_ambil', $today)->where('status', 'selesai')->count(),
+            'batal' => Antrian::whereDate('waktu_ambil', $today)->where('status', 'batal')->count(),
+        ];
+
+        $total_layanan = Layanan::count();
+        $total_loket = Loket::count();
+        $total_pengguna = User::count();
+
+        return view('admin.dashboard', compact('statistik', 'total_layanan', 'total_loket', 'total_pengguna'));
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Layanan;
+use Illuminate\Http\Request;
+
+class LayananController extends Controller
+{
+    public function index()
+    {
+        $layanans = Layanan::latest()->get();
+        return view('admin.layanan.index', compact('layanans'));
+    }
+
+    public function create()
+    {
+        return view('admin.layanan.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama_layanan' => 'required|string|max:255',
+            'prefix' => 'required|string|max:5|unique:layanans,prefix',
+            'digit' => 'required|integer|min:1|max:5',
+            'status' => 'required|in:aktif,nonaktif',
+        ]);
+
+        Layanan::create($request->all());
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Layanan berhasil ditambahkan'], 201);
+        }
+
+        return redirect()->route('admin.layanan.index')->with('success', 'Layanan berhasil ditambahkan');
+    }
+
+    public function edit(Layanan $layanan)
+    {
+        return view('admin.layanan.edit', compact('layanan'));
+    }
+
+    public function update(Request $request, Layanan $layanan)
+    {
+        $request->validate([
+            'nama_layanan' => 'required|string|max:255',
+            'prefix' => 'required|string|max:5|unique:layanans,prefix,' . $layanan->id,
+            'digit' => 'required|integer|min:1|max:5',
+            'status' => 'required|in:aktif,nonaktif',
+        ]);
+
+        $layanan->update($request->all());
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Layanan berhasil diperbarui']);
+        }
+
+        return redirect()->route('admin.layanan.index')->with('success', 'Layanan berhasil diperbarui');
+    }
+
+    public function destroy(Layanan $layanan)
+    {
+        // Check if layanan has antrians
+        if ($layanan->antrians()->exists()) {
+            return redirect()->route('admin.layanan.index')->with('error', 'Tidak dapat menghapus layanan yang memiliki data antrian');
+        }
+
+        $layanan->delete();
+        
+        return redirect()->route('admin.layanan.index')->with('success', 'Layanan berhasil dihapus');
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Loket;
+use App\Models\Layanan;
+use Illuminate\Http\Request;
+
+class LoketController extends Controller
+{
+    public function index()
+    {
+        $lokets = Loket::with('layanan')->latest()->get();
+        $layanans = Layanan::where('status', 'aktif')->get();
+        return view('admin.loket.index', compact('lokets', 'layanans'));
+    }
+
+    public function create()
+    {
+        $layanans = Layanan::where('status', 'aktif')->get();
+        return view('admin.loket.create', compact('layanans'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama_loket' => 'required|string|max:255',
+            'layanan_id' => 'required|exists:layanans,id',
+            'status' => 'required|in:aktif,tutup',
+        ]);
+
+        Loket::create($request->all());
+
+        return redirect()->route('admin.loket.index')->with('success', 'Loket berhasil ditambahkan');
+    }
+
+    public function edit(Loket $loket)
+    {
+        $layanans = Layanan::where('status', 'aktif')->get();
+        return view('admin.loket.edit', compact('loket', 'layanans'));
+    }
+
+    public function update(Request $request, Loket $loket)
+    {
+        $request->validate([
+            'nama_loket' => 'required|string|max:255',
+            'layanan_id' => 'required|exists:layanans,id',
+            'status' => 'required|in:aktif,tutup',
+        ]);
+
+        $loket->update($request->all());
+
+        return redirect()->route('admin.loket.index')->with('success', 'Loket berhasil diperbarui');
+    }
+
+    public function destroy(Loket $loket)
+    {
+        $loket->delete();
+        return redirect()->route('admin.loket.index')->with('success', 'Loket berhasil dihapus');
+    }
+
+    public function toggleStatus(Loket $loket)
+    {
+        $loket->status = $loket->status === 'aktif' ? 'tutup' : 'aktif';
+        $loket->save();
+
+        return response()->json(['success' => true, 'status' => $loket->status]);
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Pengaturan;
+use Illuminate\Http\Request;
+
+class PengaturanController extends Controller
+{
+    public function index()
+    {
+        $pengaturan = Pengaturan::first();
+        return view('admin.pengaturan.index', compact('pengaturan'));
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'nama_instansi' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'telepon' => 'required|string|max:20',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $pengaturan = Pengaturan::first();
+        
+        if (!$pengaturan) {
+            $pengaturan = new Pengaturan();
+        }
+
+        $data = $request->only(['nama_instansi', 'alamat', 'telepon', 'deskripsi']);
+
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images/logo'), $filename);
+            $data['logo'] = $filename;
+        }
+
+        $pengaturan->fill($data);
+        $pengaturan->save();
+
+        return redirect()->route('admin.pengaturan.index')->with('success', 'Pengaturan berhasil diperbarui');
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Loket;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
+class PenggunaController extends Controller
+{
+    public function index()
+    {
+        $users = User::with('loket')->latest()->get();
+        $lokets = Loket::where('status', 'aktif')->get();
+        return view('admin.pengguna.index', compact('users', 'lokets'));
+    }
+
+    public function create()
+    {
+        $lokets = Loket::where('status', 'aktif')->get();
+        return view('admin.pengguna.create', compact('lokets'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:6',
+            'role' => 'required|in:admin,operator',
+            'loket_id' => 'nullable|exists:lokets,id',
+            'status' => 'required|in:aktif,nonaktif',
+        ]);
+
+        $data = $request->all();
+        $data['password'] = Hash::make($request->password);
+
+        User::create($data);
+
+        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil ditambahkan');
+    }
+
+    public function edit(User $pengguna)
+    {
+        $lokets = Loket::where('status', 'aktif')->get();
+        return view('admin.pengguna.edit', compact('pengguna', 'lokets'));
+    }
+
+    public function update(Request $request, User $pengguna)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,' . $pengguna->id,
+            'email' => 'required|email|unique:users,email,' . $pengguna->id,
+            'password' => 'nullable|string|min:6',
+            'role' => 'required|in:admin,operator',
+            'loket_id' => 'nullable|exists:lokets,id',
+            'status' => 'required|in:aktif,nonaktif',
+        ]);
+
+        $data = $request->except('password');
+        
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $pengguna->update($data);
+
+        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil diperbarui');
+    }
+
+    public function destroy(User $pengguna)
+    {
+        $pengguna->delete();
+        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil dihapus');
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Petugas;
+
+use App\Http\Controllers\Controller;
+use App\Models\Antrian;
+use App\Models\Loket;
+use App\Services\LogActivityService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+
+class LoketPetugasController extends Controller
+{
+    public function index()
+    {
+        $user = Auth::user();
+        $loket = $user->loket;
+
+        if (!$loket) {
+            return redirect()->route('login')->with('error', 'Anda tidak memiliki loket yang ditugaskan');
+        }
+
+        $today = Carbon::today();
+        
+        // Statistik hari ini untuk loket ini
+        $statistik = [
+            'total' => Antrian::where('loket_id', $loket->id)
+                ->whereDate('waktu_ambil', $today)->count(),
+            'menunggu' => Antrian::where('loket_id', $loket->id)
+                ->whereDate('waktu_ambil', $today)
+                ->where('status', 'menunggu')->count(),
+            'dipanggil' => Antrian::where('loket_id', $loket->id)
+                ->whereDate('waktu_ambil', $today)
+                ->where('status', 'dipanggil')->count(),
+            'dilayani' => Antrian::where('loket_id', $loket->id)
+                ->whereDate('waktu_ambil', $today)
+                ->where('status', 'dilayani')->count(),
+            'selesai' => Antrian::where('loket_id', $loket->id)
+                ->whereDate('waktu_ambil', $today)
+                ->where('status', 'selesai')->count(),
+        ];
+
+        // Antrian yang sedang aktif
+        $antrianAktif = Antrian::where('layanan_id', $loket->layanan_id)
+            ->whereDate('waktu_ambil', $today)
+            ->whereIn('status', ['menunggu', 'dipanggil', 'dilayani'])
+            ->orderBy('waktu_ambil', 'asc')
+            ->get();
+
+        return view('petugas.loket', compact('loket', 'statistik', 'antrianAktif'));
+    }
+
+    public function panggil(Request $request)
+    {
+        $user = Auth::user();
+        $loket = $user->loket;
+
+        // Ambil antrian pertama yang menunggu
+        $antrian = Antrian::where('layanan_id', $loket->layanan_id)
+            ->where('status', 'menunggu')
+            ->whereDate('waktu_ambil', Carbon::today())
+            ->orderBy('waktu_ambil', 'asc')
+            ->first();
+
+        if (!$antrian) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada antrian']);
+        }
+
+        $antrian->update([
+            'status' => 'dipanggil',
+            'loket_id' => $loket->id,
+            'waktu_panggil' => now(),
+        ]);
+
+        LogActivityService::antrianCalled($antrian);
+
+        return response()->json(['success' => true, 'antrian' => $antrian]);
+    }
+
+    public function layani(Request $request)
+    {
+        $antrian_id = $request->input('antrian_id');
+        $antrian = Antrian::findOrFail($antrian_id);
+        
+        $antrian->update([
+            'status' => 'dilayani',
+        ]);
+
+        LogActivityService::antrianServed($antrian);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function selesai(Request $request)
+    {
+        $antrian_id = $request->input('antrian_id');
+        $antrian = Antrian::findOrFail($antrian_id);
+        
+        $antrian->update([
+            'status' => 'selesai',
+            'waktu_selesai' => now(),
+        ]);
+
+        LogActivityService::antrianCompleted($antrian);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function batal(Request $request)
+    {
+        $antrian_id = $request->input('antrian_id');
+        $antrian = Antrian::findOrFail($antrian_id);
+        
+        $antrian->update([
+            'status' => 'batal',
+        ]);
+
+        LogActivityService::antrianCancelled($antrian);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function tutupLoket(Request $request)
+    {
+        $user = Auth::user();
+        $loket = $user->loket;
+
+        $loket->update([
+            'status' => $loket->status === 'aktif' ? 'tutup' : 'aktif',
+        ]);
+
+        return response()->json(['success' => true, 'status' => $loket->status]);
+    }
+}
