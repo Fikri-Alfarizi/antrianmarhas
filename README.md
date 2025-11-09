@@ -1,0 +1,429 @@
+# AntrianMarhas v3 — Queue Management System
+
+Sistem antrian digital modern dengan real-time display, audio announcements, dan operator dashboard. Built with Laravel, Pusher, dan Web Speech API.
+
+## 📋 Quick Start
+
+### Prerequisites
+- PHP 8.1+
+- Composer
+- Node.js & npm
+- MySQL 5.7+
+
+### Installation
+
+```bash
+# Clone & install
+git clone https://github.com/Fikri-Alfarizi/antrianmarhas.git
+cd antrianmarhas
+composer install
+npm install
+
+# Setup environment
+cp .env.example .env
+php artisan key:generate
+
+# Build & cache
+npm run build
+php artisan config:clear
+php artisan cache:clear
+
+# Run migrations
+php artisan migrate
+
+# Start server
+php artisan serve
+```
+
+Open: http://localhost:8000
+
+---
+
+## 🎯 Features
+
+### 1. Real-time Queue Display
+- WebSocket-based display updates via Pusher
+- Polling fallback (AJAX every 5s) if WebSocket unavailable
+- Multiple loket (counter) support
+- Automatic queue status tracking
+
+### 2. Audio Announcement System
+- **Beep notification** (Web Audio API)
+- **Web Speech API** (browser native TTS)
+- **Google Translate TTS** (fallback)
+- Multi-language support (Indonesian, English, Javanese, Sundanese, Malay)
+- Customizable message templates
+
+### 3. Operator Dashboard
+- Simple queue management interface
+- Call, serve, complete, and cancel queue actions
+- Real-time loket status display
+- Performance metrics
+
+### 4. Admin Panel
+- Audio settings (enable/disable, volume, language, format)
+- Layanan (service) management
+- Loket (counter) management
+- User management
+- Analytics and reporting
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────┐
+│    OPERATOR DASHBOARD               │
+│  (Login & PANGGIL ANTRIAN)          │
+└──────────────┬──────────────────────┘
+               │ broadcast()
+               ↓
+┌─────────────────────────────────────┐
+│    LARAVEL BACKEND                  │
+│  AntrianDipanggil Event             │
+└──────────────┬──────────────────────┘
+               │ Pusher Broadcasting
+         ┌─────┴──────┐
+         ↓            ↓
+    ┌────────┐   ┌───────────┐
+    │WebSocket  │Polling (5s)
+    └────┬────┘ └─────┬─────┘
+         └──────┬─────┘
+                ↓
+    ┌─────────────────────┐
+    │ DISPLAY PAGE        │
+    │ (Queue + Audio)     │
+    └─────────────────────┘
+```
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables (.env)
+
+**Broadcasting:**
+```
+BROADCAST_CONNECTION=pusher
+PUSHER_APP_ID=2074916
+PUSHER_APP_KEY=your_key
+PUSHER_APP_SECRET=your_secret
+PUSHER_HOST=api-ap1.pusher.com
+PUSHER_PORT=443
+PUSHER_SCHEME=https
+PUSHER_CLUSTER=ap1
+```
+
+**Frontend (Vite):**
+```
+VITE_PUSHER_APP_KEY=${PUSHER_APP_KEY}
+VITE_PUSHER_APP_CLUSTER=${PUSHER_CLUSTER}
+VITE_PUSHER_HOST=${PUSHER_HOST}
+VITE_PUSHER_PORT=${PUSHER_PORT}
+VITE_PUSHER_SCHEME=${PUSHER_SCHEME}
+```
+
+After `.env` changes:
+```bash
+npm run build
+php artisan config:clear
+```
+
+---
+
+## 🎵 Audio System
+
+### How It Works
+
+When operator clicks **PANGGIL ANTRIAN**:
+
+1. **Backend**: Queue status changes to "dipanggil", event broadcast
+2. **Frontend (Display)**:
+   - Detects queue status change (WebSocket or polling)
+   - Plays beep notification (Web Audio)
+   - Speaks announcement (Web Speech → Google TTS fallback)
+
+### Message Format
+
+Template with placeholders (admin configurable):
+```
+"Nomor {nomor} silakan menuju ke {lokasi}"
+```
+
+Example output:
+```
+"Nomor A 001 silakan menuju ke Loket 1"
+```
+
+### Languages Supported
+
+| Code | Language | Web Speech | Google TTS |
+|------|----------|-----------|-----------|
+| id | Indonesian | id-ID | id |
+| en | English | en-US | en |
+| jv | Javanese | jv-ID | jv |
+| su | Sundanese | su-ID | su |
+| ms | Malay | ms-MY | ms |
+
+### Fallback Logic
+
+1. Try Web Speech API (browser native) → If supported, use it
+2. If Web Speech error → Fallback to Google Translate TTS
+3. Volume & language read from `audio_settings` DB table
+
+---
+
+## 📊 Admin Panel
+
+### Audio Settings
+```
+http://localhost:8000/admin/audio-settings
+```
+
+Configure:
+- **Aktif** (Enable/Disable)
+- **Volume** (0-100)
+- **Bahasa** (Language)
+- **Format Pesan** (Message template)
+- **Tipe Audio** (text-to-speech/audio-file)
+
+Changes apply immediately after display page refresh.
+
+---
+
+## 🧪 Testing
+
+### Test Pages (Dev Only)
+
+**Broadcast Test:**
+```
+http://localhost:8000/test/broadcast
+```
+
+**Audio Test:**
+```
+http://localhost:8000/test/audio
+```
+
+### Console Debugging
+
+Open DevTools (F12) on display page and look for `[AUDIO]` logs:
+
+```javascript
+[AUDIO] Playing announcement: A001 → Loket 1
+[AUDIO] Trying Web Speech API (id-ID)...
+[AUDIO] ✅ Speaking in id-ID...
+[AUDIO] ✅ Web Speech completed
+
+// Or fallback:
+[AUDIO] Fallback to Google TTS...
+[AUDIO] Google TTS announcement started
+```
+
+### Verify Audio Works
+
+1. Admin Panel → Set Audio to aktif ✓
+2. Display page → Hard refresh (Ctrl+Shift+R) ✓
+3. Operator Dashboard → Click PANGGIL
+4. Listen for beep + voice on display ✓
+5. Check console logs for [AUDIO] traces ✓
+
+---
+
+## 🚀 Deployment
+
+### Production Checklist
+
+- [ ] Configure real Pusher credentials in `.env`
+- [ ] Set `APP_ENV=production` and `APP_DEBUG=false`
+- [ ] Run `npm run build` with production settings
+- [ ] Set up HTTPS/SSL certificate
+- [ ] Configure database backups
+- [ ] Monitor error logs
+- [ ] Test audio on target browsers (Chrome, Firefox, Safari)
+
+### Deploy Steps
+
+```bash
+# Pull latest code
+git pull origin main
+
+# Install/update deps
+composer install --no-dev
+npm install --production
+npm run build
+
+# Clear caches
+php artisan config:clear
+php artisan cache:clear
+
+# Run migrations if needed
+php artisan migrate --force
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### No Audio on Display
+
+1. **Check if audio is enabled:**
+   ```bash
+   php artisan tinker
+   > DB::table('audio_settings')->first()
+   # Verify aktif = 1, volume > 0
+   ```
+
+2. **Hard refresh display page** (Ctrl+Shift+R)
+
+3. **Check browser console** (F12):
+   - Look for `[AUDIO]` messages
+   - Check for any `[ERROR]` logs
+
+4. **Browser audio settings:**
+   - Ensure browser not muted
+   - Check system volume
+   - Test with `/test/audio` page
+
+### WebSocket Connection Fails
+
+- **Normal in local development** if Pusher not configured
+- **Polling fallback active** — displays still update every 5s
+- Check `.env` PUSHER_* settings for typos
+
+### English Voice Not Playing
+
+- Some browsers don't include English voice for Web Speech
+- Code automatically falls back to Google TTS
+- Check console for error logs
+
+### Settings Not Applied
+
+- Hard refresh display page after admin changes
+- Clear browser cache (Ctrl+Shift+Delete)
+- Run `php artisan config:clear`
+
+---
+
+## 📁 Project Structure
+
+```
+antrianmarhas/
+├── app/
+│   ├── Events/
+│   │   └── AntrianDipanggil.php
+│   ├── Http/Controllers/
+│   │   ├── DisplayController.php
+│   │   ├── Admin/AudioSettingController.php
+│   │   └── Petugas/LoketPetugasController.php
+│   └── Models/
+│       ├── Antrian.php
+│       ├── AudioSetting.php
+│       ├── Loket.php
+│       └── ...
+├── resources/
+│   ├── views/
+│   │   ├── display/index.blade.php
+│   │   ├── admin/audio-settings/
+│   │   └── petugas/loket/
+│   └── js/bootstrap.js
+├── routes/
+│   └── web.php
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── .env.example
+├── README.md
+└── package.json
+```
+
+---
+
+## 🔄 Real-time Flow
+
+### Without Pusher (Polling Mode)
+
+```
+Display Page
+  ↓ Every 5 seconds
+GET /display/data
+  ↓
+Check loket antrian status
+  ↓
+If status === 'dipanggil' & new
+  ↓
+Play audio + update display
+```
+
+### With Pusher (WebSocket Mode)
+
+```
+Operator clicks PANGGIL
+  ↓
+broadcast(new AntrianDipanggil(...))
+  ↓
+Pusher receives event
+  ↓
+WebSocket → Display page instantly
+  ↓
+Play audio + update display
+```
+
+---
+
+## 🛠️ Development Commands
+
+```bash
+# Build frontend
+npm run build
+
+# Watch mode (live reload)
+npm run dev
+
+# Format code
+npm run format
+
+# Clear caches
+php artisan config:clear
+php artisan cache:clear
+
+# Database
+php artisan migrate
+php artisan db:seed
+
+# Tinker console
+php artisan tinker
+```
+
+---
+
+## 📝 Database Tables
+
+Key tables:
+- `audio_settings` — Audio configuration (aktif, volume, bahasa, format_pesan)
+- `antrians` — Queue records
+- `lokets` — Counter/booth information
+- `layanans` — Services offered
+- `users` — Operator & admin accounts
+
+---
+
+## 📞 Support
+
+For issues or questions:
+1. Check this README first
+2. Review console logs (`[AUDIO]`, `[LOAD]`, `[ECHO]` tags)
+3. Check `.env` configuration
+4. Verify database schema with migrations
+5. Test with `/test/audio` page
+
+---
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+---
+
+**Last Updated**: November 2025
+**Version**: 3.0
