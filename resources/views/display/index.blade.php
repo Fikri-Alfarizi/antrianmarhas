@@ -619,7 +619,24 @@
         }
     }
 
-    // Hanya menggunakan Web Speech API
+    // Fallback: Google TTS jika Web Speech gagal
+    function playGoogleTTS(text) {
+        console.log('[AUDIO] Fallback: Menggunakan Google TTS...');
+        try {
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=id&client=tw-ob`;
+            const audio = new Audio(url);
+            audio.volume = audioVolume;
+            audio.play().then(() => {
+                console.log('[AUDIO] ✅ Google TTS berhasil diputar');
+            }).catch(err => {
+                console.error('[AUDIO] ❌ Google TTS error:', err);
+            });
+        } catch (e) {
+            console.error('[AUDIO] Exception saat play Google TTS:', e);
+        }
+    }
+
+    // Web Speech API dengan fallback ke Google TTS
     function playCallAudio(kodeAntrian, namaLoket) {
         if (!audioEnabled) {
             console.log('[AUDIO] Audio disabled');
@@ -630,44 +647,60 @@
         
         playNotificationSound();
         
-        if (!('speechSynthesis' in window)) {
-            console.warn('[AUDIO] Web Speech API not available. Cannot announce.');
-            return;
+        let msg1 = audioFormatPesan
+            .replace('{nomor}', kodeAntrian)
+            .replace('{lokasi}', namaLoket);
+        
+        if (!msg1 || msg1.includes('{')) {
+            const splitKode = kodeAntrian.split('').join(' ');
+            msg1 = `Nomor antrian ${splitKode}, dimohon menuju ${namaLoket}`;
         }
         
-        setTimeout(() => {
-            try {
-                if (lastAudio) {
-                    window.speechSynthesis.cancel();
+        console.log('[AUDIO] Message (ID-ID):', msg1);
+        
+        // Coba Web Speech API dulu
+        if ('speechSynthesis' in window) {
+            setTimeout(() => {
+                try {
+                    if (window.speechSynthesis.speaking) {
+                        window.speechSynthesis.cancel();
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(msg1);
+                    utterance.lang = 'id-ID'; 
+                    utterance.rate = 0.8;
+                    utterance.volume = audioVolume;
+                    
+                    let webSpeechSucceeded = false;
+                    
+                    utterance.onstart = () => { 
+                        webSpeechSucceeded = true;
+                        console.log('[AUDIO] ✅ Web Speech berhasil dimulai (ID-ID)'); 
+                    };
+                    
+                    utterance.onerror = (e) => { 
+                        console.warn(`[AUDIO] ⚠️ Web Speech error: ${e.error}`);
+                        if (!webSpeechSucceeded) {
+                            console.log('[AUDIO] Fallback ke Google TTS...');
+                            playGoogleTTS(msg1);
+                        }
+                    };
+                    
+                    utterance.onend = () => { 
+                        console.log('[AUDIO] Web Speech selesai'); 
+                    };
+                    
+                    window.speechSynthesis.speak(utterance);
+                    console.log('[AUDIO] Web Speech announcement started');
+                } catch (e) {
+                    console.error('[AUDIO] Web Speech exception:', e);
+                    playGoogleTTS(msg1);
                 }
-                
-                let msg1 = audioFormatPesan
-                    .replace('{nomor}', kodeAntrian)
-                    .replace('{lokasi}', namaLoket);
-                
-                if (!msg1 || msg1.includes('{')) {
-                    const splitKode = kodeAntrian.split('').join(' ');
-                    msg1 = `Nomor antrian ${splitKode}, dimohon menuju ${namaLoket}`;
-                }
-                
-                console.log('[AUDIO] Message (ID-ID):', msg1);
-                
-                const utterance = new SpeechSynthesisUtterance(msg1);
-                utterance.lang = audioLanguage; 
-                utterance.rate = 0.8;
-                utterance.volume = audioVolume;
-                
-                utterance.onstart = () => { console.log('[AUDIO] ✅ Speaking in ID-ID...'); };
-                utterance.onerror = (e) => { 
-                    console.error(`[AUDIO] ❌ Web Speech error (ID-ID): ${e.error}. Cek ketersediaan suara ID di OS/Browser.`); 
-                };
-                
-                window.speechSynthesis.speak(utterance);
-                console.log('[AUDIO] Web Speech announcement started');
-            } catch (e) {
-                console.error('[AUDIO] Web Speech exception:', e);
-            }
-        }, 800);
+            }, 800);
+        } else {
+            console.warn('[AUDIO] Web Speech API tidak tersedia. Gunakan Google TTS...');
+            playGoogleTTS(msg1);
+        }
     }
 
     // ============================================================
