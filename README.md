@@ -179,13 +179,13 @@ Example output:
 
 ### Languages Supported
 
+**Current Version**: Indonesian (Bahasa Indonesia) Only
+
 | Code | Language | Web Speech | Google TTS |
 |------|----------|-----------|-----------|
 | id | Indonesian | id-ID | id |
-| en | English | en-US | en |
-| jv | Javanese | jv-ID | jv |
-| su | Sundanese | su-ID | su |
-| ms | Malay | ms-MY | ms |
+
+> **Note**: Sistem saat ini dikonfigurasi untuk **hanya menggunakan Bahasa Indonesia**. Semua audio announcements dan text-to-speech akan menggunakan bahasa Indonesia secara eksklusif. Jika diperlukan multi-bahasa, hubungi development team.
 
 ### Fallback Logic
 
@@ -205,11 +205,13 @@ http://localhost:8000/admin/audio-settings
 Configure:
 - **Aktif** (Enable/Disable)
 - **Volume** (0-100)
-- **Bahasa** (Language)
+- **Bahasa** (Language: Indonesian/Bahasa Indonesia Only)
 - **Format Pesan** (Message template)
 - **Tipe Audio** (text-to-speech/audio-file)
 
 Changes apply immediately after display page refresh.
+
+> **⚠️ Important**: Audio language is locked to Indonesian (id) untuk konsistensi sistem.
 
 ---
 
@@ -447,6 +449,7 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Last Updated**: November 2025
-**Version**: 4.0 (Projek 200jt)
+**Last Updated**: November 12, 2025
+**Version**: 4.0+ (Bahasa Indonesia Only)
 **Project Name**: antrianmarhas
+**Language Lock**: Fixed to Indonesian (Bahasa Indonesia)
