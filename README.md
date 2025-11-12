@@ -1,4 +1,4 @@
-# AntrianMarhas v4 — Queue Management System (Projek 200jt)
+# AntrianMarhas — Queue Management System
 
 Sistem antrian digital modern dengan real-time display, audio announcements, operator dashboard, dan pusat kontrol terpusat. Built with Laravel 11, Pusher, Web Speech API, dan Vite.
 
