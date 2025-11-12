@@ -97,18 +97,15 @@
             </select>
         </div>
 
-        <div class="form-group">
-            <label for="bahasa"><i class="fas fa-language"></i> Bahasa</label>
-            <select name="bahasa" id="bahasa">
-                <option value="id" {{ $setting->bahasa === 'id' ? 'selected' : '' }}>Indonesia (id)</option>
-                <option value="en" {{ $setting->bahasa === 'en' ? 'selected' : '' }}>English (en)</option>
-                <option value="jv" {{ $setting->bahasa === 'jv' ? 'selected' : '' }}>Jawa (jv)</option>
-                <option value="su" {{ $setting->bahasa === 'su' ? 'selected' : '' }}>Sunda (su)</option>
-                <option value="ms" {{ $setting->bahasa === 'ms' ? 'selected' : '' }}>Melayu (ms)</option>
-            </select>
-        </div>
-
-        <div class="form-group">
+        <div class="form-group">
+            <label for="bahasa"><i class="fas fa-language"></i> Bahasa</label>
+            <select name="bahasa" id="bahasa" disabled>
+                <option value="id" selected>Indonesia (id) - Bahasa Indonesia Saja</option>
+            </select>
+            <small style="color: #999;">
+                <i class="fas fa-lock"></i> Sistem ini dikonfigurasi untuk hanya menggunakan Bahasa Indonesia.
+            </small>
+        </div>        <div class="form-group">
             <label for="volume">
                 <i class="fas fa-volume-high"></i> Volume Suara
             </label>
@@ -251,21 +248,18 @@
         }
     }
 
-    function testAudio() {
-        if (!document.getElementById('aktifCheck').checked) {
-            alert('Notifikasi Suara saat ini Nonaktif. Silakan aktifkan untuk menguji.');
-            return;
-        }
-        const message = getMessageText();
-        const lang = document.getElementById('bahasa').value;
-        console.log('[TEST] Initiating audio test:', message);
-        const webSpeechSuccess = tryWebSpeech(message, lang);
-        if (!webSpeechSuccess && !('speechSynthesis' in window)) {
-            playGoogleTTS(message, lang);
-        }
-    }
-
-    function updateToggleLabel() {
+    function testAudio() {
+        if (!document.getElementById('aktifCheck').checked) {
+            alert('Notifikasi Suara saat ini Nonaktif. Silakan aktifkan untuk menguji.');
+            return;
+        }
+        const message = getMessageText();
+        console.log('[TEST] Initiating audio test:', message);
+        const webSpeechSuccess = tryWebSpeech(message, 'id');
+        if (!webSpeechSuccess && !('speechSynthesis' in window)) {
+            playGoogleTTS(message, 'id');
+        }
+    }    function updateToggleLabel() {
         const isChecked = document.getElementById('aktifCheck').checked;
         document.getElementById('toggleLabel').textContent = isChecked ? 'Aktif' : 'Nonaktif';
     }
