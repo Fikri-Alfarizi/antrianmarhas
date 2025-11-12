@@ -4,8 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Dashboard | @yield('title')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {{-- Include Modal Styles Component --}}
+    @include('components.modal-styles')
     
     <style>
         /* BASE & RESET */
@@ -68,15 +72,15 @@
         <a href="{{ route('admin.antrian.index') }}" class="{{ request()->routeIs('admin.antrian.index') ? 'active' : '' }}">
             <i class="fas fa-list-ol"></i> Daftar Antrian
         </a>
+        <a href="{{ route('admin.pusat-kontrol.index') }}" class="{{ request()->routeIs('admin.pusat-kontrol.index') ? 'active' : '' }}">
+            <i class="fas fa-desktop"></i> Pusat Kontrol Pemanggilan
+        </a>
         <a href="{{ route('admin.pengguna.index') }}" class="{{ request()->routeIs('admin.pengguna.index') ? 'active' : '' }}">
             <i class="fas fa-users-cog"></i> Manajemen Pengguna
         </a>
         <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 15px 0;"></div>
         <a href="{{ route('admin.pengaturan.index') }}" class="{{ request()->routeIs('admin.pengaturan.index') ? 'active' : '' }}">
             <i class="fas fa-cogs"></i> Pengaturan Umum
-        </a>
-        <a href="{{ route('admin.audio-settings.index') }}" class="{{ request()->routeIs('admin.audio-settings.index') ? 'active' : '' }}">
-            <i class="fas fa-volume-up"></i> Pengaturan Audio
         </a>
         <a href="{{ route('admin.advanced-settings.index') }}" class="{{ request()->routeIs('admin.advanced-settings.index') ? 'active' : '' }}">
             <i class="fas fa-wrench"></i> Pengaturan Lanjutan

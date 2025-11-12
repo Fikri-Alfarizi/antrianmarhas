@@ -1,12 +1,9 @@
-﻿// File: resources/views/admin/pengaturan/index.blade.php
-// (Asumsi route: admin.pengaturan.index)
-
-@extends('layouts.app')
-@section('title', 'Pengaturan Sistem')
+﻿@extends('layouts.app')
+@section('title', 'Pengaturan Umum')
 
 @section('styles')
 <style>
-/* CSS Anda sudah bagus, saya hanya merapikannya sedikit */
+/* Grup Form */
 .form-group {
     margin-bottom: 1.25rem;
 }
@@ -23,9 +20,16 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #3498db;
+    outline: none;
 }
 .form-group input[type="file"] {
     padding: 0.5rem;
+    background: #fdfdfd;
 }
 .form-group small {
     color: #999;
@@ -72,30 +76,51 @@
     font-size: 32px; 
     margin-bottom: 10px;
 }
-
-/* Info Box */
-.info-box {
-    background: #e8f5e9; 
-    border-left: 4px solid #27ae60; 
-    padding: 15px; 
-    border-radius: 5px; 
-    margin: 20px 0;
+/* Menyembunyikan placeholder text/icon saat preview JS aktif */
+.logo-placeholder.has-preview i,
+.logo-placeholder.has-preview p {
+    display: none;
 }
-.info-box p {
-    margin: 0; 
-    color: #1b5e20;
+
+/* Notifikasi */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-weight: 500;
 }
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
 
+/* Tombol */
+.btn { 
+    padding: 12px 20px; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
 .btn-primary { 
     background: #3498db; 
     color: white; 
-    width: 100%; 
-    padding: 12px; 
-    font-size: 16px; 
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    width: 100%;
+    justify-content: center;
 }
 .btn-primary:hover { background: #2980b9; }
 
@@ -108,9 +133,29 @@
 
 @section('content')
 <div class="card">
-    <h2 style="margin-top:0;"><i class="fas fa-cog"></i> Pengaturan Sistem</h2>
+    <h2 style="margin-top:0;"><i class="fas fa-cog"></i> Pengaturan Umum</h2>
     <p style="color: #666; margin-bottom: 20px;">Kelola informasi dasar instansi Anda di sini</p>
     
+    @if (session('success'))
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> {{ session('success') }}
+    </div>
+    @endif
+    
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i> 
+        <div>
+            <strong>Gagal menyimpan!</strong>
+            <ul style="margin: 5px 0 0 20px; padding: 0;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+    @endif
+
     <form method="POST" action="{{ route('admin.pengaturan.update') }}" enctype="multipart/form-data">
         @csrf
         
@@ -133,39 +178,33 @@
             </div>
             @endif
             
-            <input type="file" name="logo" accept="image/*" style="padding: 8px;" id="logoInput">
-            <small>Format: JPG, PNG, GIF. Maksimal 2MB. Rekomendasi: 200x200px</small>
+            <input type="file" name="logo" accept="image/*" id="logoInput">
+            <small>Pilih file baru untuk mengganti logo. Maks 2MB.</small>
         </div>
         
         <div class="form-group">
             <label><i class="fas fa-hospital"></i> Nama Instansi</label>
-            <input type="text" name="nama_instansi" value="{{ $pengaturan->nama_instansi ?? '' }}" required 
+            <input type="text" name="nama_instansi" value="{{ old('nama_instansi', $pengaturan->nama_instansi ?? '') }}" required 
                    placeholder="Contoh: RSUD Sehat Sejahtera">
         </div>
         
         <div class="form-group">
             <label><i class="fas fa-map-marker-alt"></i> Alamat</label>
             <textarea name="alamat" rows="3" required 
-                      placeholder="Alamat lengkap instansi">{{ $pengaturan->alamat ?? '' }}</textarea>
+                      placeholder="Alamat lengkap instansi">{{ old('alamat', $pengaturan->alamat ?? '') }}</textarea>
         </div>
         
         <div class="form-group">
             <label><i class="fas fa-phone"></i> Nomor Telepon</label>
-            <input type="text" name="telepon" value="{{ $pengaturan->telepon ?? '' }}" required 
+            <input type="text" name="telepon" value="{{ old('telepon', $pengaturan->telepon ?? '') }}" required 
                    placeholder="Contoh: (021) 12345678">
         </div>
         
         <div class="form-group">
             <label><i class="fas fa-info-circle"></i> Deskripsi (Opsional)</label>
             <textarea name="deskripsi" rows="3" 
-                      placeholder="Deskripsi singkat tentang instansi Anda">{{ $pengaturan->deskripsi ?? '' }}</textarea>
+                      placeholder="Deskripsi singkat tentang instansi Anda">{{ old('deskripsi', $pengaturan->deskripsi ?? '') }}</textarea>
             <small>Deskripsi ini akan ditampilkan di beberapa bagian aplikasi</small>
-        </div>
-        
-        <div class="info-box">
-            <p>
-                <i class="fas fa-info-circle"></i> Perubahan akan diterapkan langsung ke seluruh aplikasi
-            </p>
         </div>
         
         <button type="submit" class="btn btn-primary">
@@ -177,7 +216,7 @@
 
 @section('scripts')
 <script>
-// Menambahkan JS inline untuk live preview gambar
+// 💡 INI ADALAH JAVASCRIPT UNTUK LIVE PREVIEW LOGO
 document.addEventListener('DOMContentLoaded', function() {
     const logoInput = document.getElementById('logoInput');
     const logoPreview = document.getElementById('logoPreview');
@@ -192,21 +231,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 reader.onload = function(e) {
                     if (logoPreview) {
-                        // Tampilkan gambar yang baru dipilih
+                        // 1. Tampilkan gambar yang baru dipilih
                         logoPreview.src = e.target.result;
                         logoPreview.style.display = 'block';
                     }
                     
                     if (logoPlaceholder) {
-                        // Jika ada placeholder, sembunyikan teks "Belum ada logo"
-                        // dan hanya tampilkan gambar di dalamnya.
-                        const placeholderText = logoPlaceholder.querySelector('p');
-                        const placeholderIcon = logoPlaceholder.querySelector('i');
-                        if (placeholderText) placeholderText.style.display = 'none';
-                        if (placeholderIcon) placeholderIcon.style.display = 'none';
+                        // 2. Sembunyikan icon dan text "Belum ada logo"
+                        logoPlaceholder.classList.add('has-preview');
                     }
                 };
                 
+                // 3. Baca file sebagai URL
                 reader.readAsDataURL(file);
             }
         });

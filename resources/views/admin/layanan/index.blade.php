@@ -3,7 +3,7 @@
 
 @section('styles')
 <style>
-/* Tabel */
+/* CSS dari file pengguna Anda untuk konsistensi */
 .styled-table {
     width: 100%;
     border-collapse: collapse;
@@ -76,7 +76,7 @@
     color: #f39c12;
 }
 
-/* Modal */
+/* Modal Styling (dari file pengguna) */
 .modal {
     display: none;
     position: fixed;
@@ -91,26 +91,39 @@
 }
 .modal-content {
     background-color: #fefefe;
-    margin: 10% auto;
-    padding: 25px;
+    margin: 10% auto; /* Ubah dari 5% agar lebih tengah */
+    padding: 0; /* Hapus padding agar header/footer rapi */
     border: 1px solid #888;
     width: 90%;
     max-width: 500px;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     animation: slideIn 0.3s;
+    overflow: hidden; /* Penting */
 }
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    padding: 15px 20px; /* Sesuaikan padding */
+    background-color: #f9f9f9;
 }
 .modal-header h3 {
     margin: 0;
     color: #2c3e50;
+    font-size: 18px; /* Sesuaikan font size */
+}
+.modal-body {
+    padding: 20px;
+}
+.modal-footer {
+    padding: 15px 20px;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 .close-btn {
     color: #aaa;
@@ -157,13 +170,29 @@
     background-color: #f8d7da;
     border-color: #f5c6cb;
 }
+
+/* Header dengan tombol */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.page-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
 </style>
 @endsection
 
 @section('content')
 
-<div class="card" style="margin-bottom: 20px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-    <h2 style="margin: 0;"><i class="fas fa-concierge-bell"></i> Daftar Layanan</h2>
+<div class="page-header">
+    <h2><i class="fas fa-concierge-bell"></i> Daftar Layanan</h2>
     <button class="btn btn-primary" onclick="openModal('createModal')">
         <i class="fas fa-plus"></i> Tambah Layanan Baru
     </button>
@@ -219,20 +248,23 @@
                 </td>
                 <td class="action-buttons">
                     <button class="btn btn-edit" onclick="openModal('editModal-{{ $layanan->id }}')">
-                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-edit"></i> Edit
                     </button>
                     <form action="{{ route('admin.layanan.destroy', $layanan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus layanan ini?');" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash"></i> Hapus
                         </button>
                     </form>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="5" style="text-align: center; padding: 20px;">Belum ada data layanan.</td>
+                <td colspan="5" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                    <i class="fas fa-inbox" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                    Belum ada data layanan.
+                </td>
             </tr>
             @endforelse
         </tbody>
@@ -241,32 +273,34 @@
 
 <div id="createModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-plus-circle"></i> Tambah Layanan Baru</h3>
-            <span class="close-btn" onclick="closeModal('createModal')">&times;</span>
-        </div>
-        <form action="{{ route('admin.layanan.store') }}" method="POST">
+        <form id="createForm" action="{{ route('admin.layanan.store') }}" method="POST">
             @csrf
-            <div class="form-group">
-                <label for="nama_layanan">Nama Layanan</label>
-                <input type="text" id="nama_layanan" name="nama_layanan" placeholder="Contoh: Pemeriksaan Umum" required>
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Tambah Layanan Baru</h3>
+                <span class="close-btn" onclick="closeModal('createModal')">&times;</span>
             </div>
-            <div class="form-group">
-                <label for="prefix">Prefix (Kode Awal)</label>
-                <input type="text" id="prefix" name="prefix" placeholder="Contoh: A (Harus Unik)" required maxlength="5">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="create_nama_layanan">Nama Layanan</label>
+                    <input type="text" id="create_nama_layanan" name="nama_layanan" value="{{ old('nama_layanan') }}" placeholder="Contoh: Pemeriksaan Umum" required>
+                </div>
+                <div class="form-group">
+                    <label for="create_prefix">Prefix (Kode Awal)</label>
+                    <input type="text" id="create_prefix" name="prefix" value="{{ old('prefix') }}" placeholder="Contoh: A (Harus Unik)" required maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label for="create_digit">Jumlah Digit Angka</label>
+                    <input type="number" id="create_digit" name="digit" value="{{ old('digit', 3) }}" min="1" max="5" required>
+                </div>
+                <div class="form-group">
+                    <label for="create_status">Status</label>
+                    <select id="create_status" name="status" required>
+                        <option value="aktif" {{ old('status', 'aktif') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="nonaktif" {{ old('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="digit">Jumlah Digit Angka</label>
-                <input type="number" id="digit" name="digit" value="3" min="1" max="5" required>
-            </div>
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select id="status" name="status" required>
-                    <option value="aktif" selected>Aktif</option>
-                    <option value="nonaktif">Nonaktif</option>
-                </select>
-            </div>
-            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
             </div>
@@ -277,35 +311,37 @@
 @foreach($layanans as $layanan)
 <div id="editModal-{{ $layanan->id }}" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Edit Layanan</h3>
-            <span class="close-btn" onclick="closeModal('editModal-{{ $layanan->id }}')">&times;</span>
-        </div>
-        <form action="{{ route('admin.layanan.update', $layanan->id) }}" method="POST">
+        <form id="editForm-{{ $layanan->id }}" action="{{ route('admin.layanan.update', $layanan->id) }}" method="POST">
             @csrf
             @method('PUT')
-            <div class="form-group">
-                <label for="nama_layanan-{{ $layanan->id }}">Nama Layanan</label>
-                <input type="text" id="nama_layanan-{{ $layanan->id }}" name="nama_layanan" value="{{ $layanan->nama_layanan }}" required>
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Layanan</h3>
+                <span class="close-btn" onclick="closeModal('editModal-{{ $layanan->id }}')">&times;</span>
             </div>
-            <div class="form-group">
-                <label for="prefix-{{ $layanan->id }}">Prefix (Kode Awal)</label>
-                <input type="text" id="prefix-{{ $layanan->id }}" name="prefix" value="{{ $layanan->prefix }}" required maxlength="5">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit_nama_layanan_{{ $layanan->id }}">Nama Layanan</label>
+                    <input type="text" id="edit_nama_layanan_{{ $layanan->id }}" name="nama_layanan" value="{{ old('nama_layanan', $layanan->nama_layanan) }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_prefix_{{ $layanan->id }}">Prefix (Kode Awal)</label>
+                    <input type="text" id="edit_prefix_{{ $layanan->id }}" name="prefix" value="{{ old('prefix', $layanan->prefix) }}" required maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label for="edit_digit_{{ $layanan->id }}">Jumlah Digit Angka</label>
+                    <input type="number" id="edit_digit_{{ $layanan->id }}" name="digit" value="{{ old('digit', $layanan->digit) }}" min="1" max="5" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_status_{{ $layanan->id }}">Status</label>
+                    <select id="edit_status_{{ $layanan->id }}" name="status" required>
+                        <option value="aktif" {{ old('status', $layanan->status) == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="nonaktif" {{ old('status', $layanan->status) == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="digit-{{ $layanan->id }}">Jumlah Digit Angka</label>
-                <input type="number" id="digit-{{ $layanan->id }}" name="digit" value="{{ $layanan->digit }}" min="1" max="5" required>
-            </div>
-            <div class="form-group">
-                <label for="status-{{ $layanan->id }}">Status</label>
-                <select id="status-{{ $layanan->id }}" name="status" required>
-                    <option value="aktif" {{ $layanan->status == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                    <option value="nonaktif" {{ $layanan->status == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
-                </select>
-            </div>
-            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('editModal-{{ $layanan->id }}')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Perubahan</button>
             </div>
         </form>
     </div>
@@ -316,7 +352,7 @@
 
 @section('scripts')
 <script>
-// JavaScript untuk membuka dan menutup modal
+// JavaScript untuk membuka dan menutup modal (dari file pengguna)
 function openModal(modalId) {
     document.getElementById(modalId).style.display = 'block';
 }
@@ -327,7 +363,6 @@ function closeModal(modalId) {
 
 // Menutup modal jika user klik di luar area modal
 window.onclick = function(event) {
-    // Cari semua modal yang sedang terbuka
     const modals = document.getElementsByClassName('modal');
     for (let i = 0; i < modals.length; i++) {
         if (event.target == modals[i]) {
@@ -337,16 +372,12 @@ window.onclick = function(event) {
 }
 
 // Menangani error validasi dari Laravel
-// Jika ada error, modal yang relevan (create atau edit) akan otomatis terbuka
 @if ($errors->any())
     @if (old('_method') === 'PUT')
-        // Jika ini adalah error dari UPDATE, cari modal edit yang mana
-        // Ini asumsi, perlu cara lebih baik untuk tahu ID mana yang error
-        // Untuk sekarang, kita buka modal edit pertama jika ada error update
         @php
             $errorId = null;
             if (session()->has('_old_input')) {
-                // Cara kasar untuk mendapatkan ID dari URL form action sebelumnya
+                // Coba temukan ID dari URL sebelumnya
                 $url = session()->get('_previous')['url'] ?? '';
                 preg_match('/\/(\d+)$/', $url, $matches);
                 if (isset($matches[1])) {
@@ -355,13 +386,18 @@ window.onclick = function(event) {
             }
         @endphp
         
+        // Periksa jika $errorId berhasil ditemukan
         @if ($errorId)
+            console.log('Error validasi pada modal edit ID: {{ $errorId }}');
+            // Buka modal edit yang error
             openModal('editModal-{{ $errorId }}');
         @endif
     @else
         // Jika ini adalah error dari CREATE
+        console.log('Error validasi pada modal create');
         openModal('createModal');
     @endif
 @endif
+
 </script>
 @endsection

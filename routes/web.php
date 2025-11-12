@@ -10,75 +10,77 @@ use App\Http\Controllers\Admin\LoketController;
 use App\Http\Controllers\Admin\PenggunaController;
 use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\Admin\AntrianController;
-use App\Http\Controllers\Admin\AudioSettingController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\PrintController;
+use App\Http\Controllers\Admin\PusatKontrolController;
 use App\Http\Controllers\Admin\AdvancedSettingController;
 use App\Http\Controllers\Petugas\LoketPetugasController;
 use Illuminate\Support\Facades\Route;
 
-// Auth Routes
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Public Routes
+/*
+|--------------------------------------------------------------------------
+| Public Routes (Kios, Display, Status Check)
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// Display Ruang Tunggu (Real-time)
 Route::get('/display', [DisplayController::class, 'index'])->name('display.index');
 Route::get('/display/data', [DisplayController::class, 'getData'])->name('display.data');
+
+// Kios Cetak Antrian (Halaman untuk pengunjung)
 Route::get('/kios', [KiosController::class, 'index'])->name('kios.index');
 Route::get('/kios/wait-times', [KiosController::class, 'getWaitTimes'])->name('kios.wait-times');
-Route::post('/kios/store', [KiosController::class, 'cetak'])->name('kios.store');
-Route::post('/kios/print', [KiosController::class, 'cetak'])->name('kios.print');
-Route::get('/waiting', function () {
-    $pengaturan = \App\Models\Pengaturan::first();
-    return view('waiting.index', compact('pengaturan'));
-})->name('waiting.index');
-Route::get('/antrian/status', [StatusController::class, 'waitingStatus'])->name('antrian.status');
-Route::withoutMiddleware('Illuminate\Foundation\Http\Middleware\VerifyCsrfToken')->group(function () {
-    Route::post('/kios/cetak', [KiosController::class, 'cetak'])->name('kios.cetak');
-    Route::post('/kios/store', [KiosController::class, 'cetak'])->name('kios.store');
-    Route::post('/status/check', [StatusController::class, 'check'])->name('status.check');
-    Route::get('/display/data', [DisplayController::class, 'getData'])->name('display.data');
-    Route::get('/antrian/status', [StatusController::class, 'waitingStatus'])->name('antrian.status');
-});
+
+// Status Antrian Pengunjung (QR Code Link)
 Route::get('/status', [StatusController::class, 'index'])->name('status.index');
 Route::get('/status/show', [StatusController::class, 'show'])->name('status.show');
+// Route::get('/antrian/status', [StatusController::class, 'waitingStatus'])->name('antrian.status'); // Dihapus, menggunakan /status/show atau /status
 
-// Testing Routes (Development Only)
-if (env('APP_DEBUG', false)) {
-    Route::get('/test/broadcast', function () {
-        return view('test.broadcast');
-    })->name('test.broadcast');
+// Rute yang TIDAK memerlukan CSRF Token (biasanya untuk API POST publik atau Kios)
+Route::withoutMiddleware('Illuminate\Foundation\Http\Middleware\VerifyCsrfToken')->group(function () {
+    // KIOS - Membuat antrian baru
+    Route::post('/kios/cetak', [KiosController::class, 'cetak'])->name('kios.cetak');
+    Route::post('/kios/store', [KiosController::class, 'cetak'])->name('kios.store'); // Alias
     
-    Route::get('/test/audio', function () {
-        return view('test-audio');
-    })->name('test.audio');
-    
-    Route::post('/test/broadcast/send', function () {
-        $service = new \App\Services\BroadcastTestService();
-        return response()->json($service->testBroadcast());
-    })->name('test.broadcast.send');
-}
+    // Status Check API
+    Route::post('/status/check', [StatusController::class, 'check'])->name('status.check');
+});
 
-// Admin Routes
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (Middleware 'auth' required)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
+    // Core CRUD
     Route::resource('layanan', LayananController::class);
     Route::resource('loket', LoketController::class);
-    Route::post('loket/{loket}/toggle', [LoketController::class, 'toggleStatus'])->name('loket.toggle');
     Route::resource('pengguna', PenggunaController::class);
     
+    // Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
     Route::post('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
-    
-    Route::get('/audio-settings', [AudioSettingController::class, 'index'])->name('audio-settings.index');
-    Route::post('/audio-settings', [AudioSettingController::class, 'update'])->name('audio-settings.update');
-    Route::get('/audio-settings/test', [AudioSettingController::class, 'testAudio'])->name('audio-settings.test');
-    
+
+    Route::get('/advanced-settings', [AdvancedSettingController::class, 'index'])->name('advanced-settings.index');
+    Route::post('/advanced-settings', [AdvancedSettingController::class, 'update'])->name('advanced-settings.update');
+
+    // Laporan & Monitoring
     Route::get('/antrian', [AntrianController::class, 'index'])->name('antrian.index');
     
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
@@ -86,16 +88,27 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/analytics/detail-stats', [AnalyticsController::class, 'getDetailStats'])->name('analytics.detail-stats');
     Route::get('/analytics/export', [AnalyticsController::class, 'exportReport'])->name('analytics.export');
     
+    // Print / History
     Route::get('/print', [PrintController::class, 'index'])->name('print.index');
     Route::get('/print/search', [PrintController::class, 'search'])->name('print.search');
     Route::post('/print/reprint', [PrintController::class, 'reprint'])->name('print.reprint');
     Route::get('/print/history', [PrintController::class, 'getHistory'])->name('print.history');
+
+    Route::get('/pusat-kontrol', [PusatKontrolController::class, 'index'])->name('pusat-kontrol.index');
+    Route::get('/pusat-kontrol/data', [PusatKontrolController::class, 'getData'])->name('pusat-kontrol.data');
+    Route::post('/pusat-kontrol/{loket}/panggil', [PusatKontrolController::class, 'panggil'])->name('pusat-kontrol.panggil');
+    Route::post('/pusat-kontrol/{loket}/selesai', [PusatKontrolController::class, 'selesai'])->name('pusat-kontrol.selesai');
     
-    Route::get('/advanced-settings', [AdvancedSettingController::class, 'index'])->name('advanced-settings.index');
-    Route::post('/advanced-settings', [AdvancedSettingController::class, 'update'])->name('advanced-settings.update');
+    // Aksi Tambahan Loket (Jika masih dibutuhkan)
+    Route::post('loket/{loket}/toggle', [LoketController::class, 'toggleStatus'])->name('loket.toggle');
 });
 
-// Petugas Routes
+
+/*
+|--------------------------------------------------------------------------
+| Petugas (Operator) Routes (Middleware 'auth' required)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function () {
     Route::get('/loket', [LoketPetugasController::class, 'index'])->name('loket.index');
     Route::get('/loket/list', [LoketPetugasController::class, 'getAntrianList'])->name('loket.list');
@@ -104,5 +117,25 @@ Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function
     Route::post('/loket/selesai', [LoketPetugasController::class, 'selesai'])->name('loket.selesai');
     Route::post('/loket/batalkan', [LoketPetugasController::class, 'batalkan'])->name('loket.batalkan');
     Route::post('/loket/tutup', [LoketPetugasController::class, 'tutupLoket'])->name('loket.tutup');
-    Route::get('/diagnostics', [\App\Http\Controllers\Petugas\DiagnosticController::class, 'diagnostics'])->name('diagnostics');
+    
+    // Rute Diagnostik (Jika DiagnosticController dibuat)
+    // Route::get('/diagnostics', [\App\Http\Controllers\Petugas\DiagnosticController::class, 'diagnostics'])->name('diagnostics'); 
 });
+
+// Testing Routes (Dibiarkan di luar group besar untuk kemudahan)
+if (env('APP_DEBUG', false)) {
+    Route::prefix('test')->name('test.')->group(function () {
+        Route::get('/broadcast', function () {
+            return view('test.broadcast');
+        })->name('broadcast');
+        
+        Route::get('/audio', function () {
+            return view('test-audio');
+        })->name('audio');
+        
+        Route::post('/broadcast/send', function () {
+            $service = new \App\Services\BroadcastTestService();
+            return response()->json($service->testBroadcast());
+        })->name('broadcast.send');
+    });
+}

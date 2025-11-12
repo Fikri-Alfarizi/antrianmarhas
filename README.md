@@ -1,6 +1,6 @@
-# AntrianMarhas v3 — Queue Management System
+# AntrianMarhas v4 — Queue Management System (Projek 200jt)
 
-Sistem antrian digital modern dengan real-time display, audio announcements, dan operator dashboard. Built with Laravel, Pusher, dan Web Speech API.
+Sistem antrian digital modern dengan real-time display, audio announcements, operator dashboard, dan pusat kontrol terpusat. Built with Laravel 11, Pusher, Web Speech API, dan Vite.
 
 ## 📋 Quick Start
 
@@ -44,28 +44,50 @@ Open: http://localhost:8000
 ### 1. Real-time Queue Display
 - WebSocket-based display updates via Pusher
 - Polling fallback (AJAX every 5s) if WebSocket unavailable
-- Multiple loket (counter) support
-- Automatic queue status tracking
+- Multiple loket (counter) support dengan real-time status tracking
+- Audio announcement system dengan Web Speech API & Google TTS fallback
+- Responsive design untuk display di TV/monitor
 
-### 2. Audio Announcement System
+### 2. Admin Panel
+- **Dashboard** — Overview sistem dan statistik
+- **Manajemen Layanan** — CRUD services
+- **Manajemen Loket** — CRUD counters dengan status real-time
+- **Manajemen Pengguna** — User & role management
+- **Pengaturan Umum** — Konfigurasi dasar sistem
+- **Pengaturan Lanjutan** — Audio settings, API keys, dll
+- **Monitoring Antrian** — Daftar lengkap antrian dengan filter & search
+- **Analytics & Reporting** — Statistik harian, chart performa, export laporan
+- **Print History** — Riwayat cetak antrian, reprint support
+
+### 3. Pusat Kontrol Pemanggilan (New in v4)
+- **Real-time Control Center** untuk memanggil antrian dari satu dashboard
+- View semua loket dengan antrian pending
+- Instant call (panggil) antrian ke loket tertentu
+- Mark as complete (selesai) langsung dari pusat kontrol
+- Real-time data refresh tanpa reload halaman
+
+### 4. Operator Dashboard (Petugas)
+- Simple queue management interface
+- Call antrian (PANGGIL)
+- Mark as serving (LAYANI)
+- Mark as complete (SELESAI)
+- Cancel queue (BATALKAN)
+- Close loket (TUTUP LOKET)
+- Real-time status display
+
+### 5. Audio Announcement System
 - **Beep notification** (Web Audio API)
 - **Web Speech API** (browser native TTS)
-- **Google Translate TTS** (fallback)
+- **Google Translate TTS** (fallback untuk audio yang lebih natural)
 - Multi-language support (Indonesian, English, Javanese, Sundanese, Malay)
-- Customizable message templates
+- Customizable message templates dengan placeholder {nomor}, {lokasi}
+- Volume control & language selection dari admin panel
 
-### 3. Operator Dashboard
-- Simple queue management interface
-- Call, serve, complete, and cancel queue actions
-- Real-time loket status display
-- Performance metrics
-
-### 4. Admin Panel
-- Audio settings (enable/disable, volume, language, format)
-- Layanan (service) management
-- Loket (counter) management
-- User management
-- Analytics and reporting
+### 6. Public Kiosk & Status Check
+- **Kios Cetak Antrian** — Pengunjung ambil nomor antrian
+- **Status Check** — Check status antrian via QR code / nomor
+- Waiting time estimation
+- Real-time display update
 
 ---
 
@@ -426,4 +448,5 @@ This project is open source and available under the MIT License.
 ---
 
 **Last Updated**: November 2025
-**Version**: 3.0
+**Version**: 4.0 (Projek 200jt)
+**Project Name**: antrianmarhas
