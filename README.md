@@ -8,7 +8,7 @@ Sistem antrian digital modern dengan real-time display, audio announcements, ope
 - PHP 8.4+
 - Composer
 - Node.js & npm
-- MySQL 5.7+
+- MySQL
 
 ### Installation
 

@@ -3,192 +3,107 @@
 
 @section('styles')
 <style>
-/* CSS ini SAMA PERSIS dengan halaman Layanan untuk konsistensi */
+/* ========================================================= */
+/* --- 1. Base Styling (Diambil dari file Anda) --- */
+/* ========================================================= */
+.card {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); padding: 24px;
+    transition: all 0.2s; margin-bottom: 24px;
+}
+.table-header-card {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; padding: 15px 24px; background: #ffffff;
+    border: 1px solid #e2e8f0; border-radius: 16px;
+}
+.table-header-card h2 { margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; }
+
+/* Tombol Tambah (menggunakan style btn-submit dari file Anda) */
+.btn-add-new {
+    padding: 10px 18px; border: none; border-radius: 12px; font-size: 14px; 
+    font-weight: 700; cursor: pointer; transition: all 0.25s;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    text-decoration: none; /* Penting untuk tag <a> */
+}
+.btn-add-new:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* ========================================================= */
+/* --- 2. Table & Action Styling (Diambil dari file Anda) --- */
+/* ========================================================= */
 .styled-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-    font-size: 0.9em;
-    min-width: 400px;
-    border-radius: 8px 8px 0 0;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%; border-collapse: collapse; margin: 0; font-size: 0.9em;
+    min-width: 400px; overflow: hidden; border: 1px solid #e2e8f0; border-radius: 12px;
 }
 .styled-table thead tr {
-    background-color: #2c3e50;
-    color: #ffffff;
-    text-align: left;
+    background-color: #f8fafc; color: #64748b; text-align: left;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .styled-table th,
-.styled-table td {
-    padding: 12px 15px;
-}
-.styled-table tbody tr {
-    border-bottom: 1px solid #f0f0f0;
-    background: #fff;
-}
-.styled-table tbody tr:last-of-type {
-    border-bottom: 2px solid #2c3e50;
-}
-.styled-table tbody tr:hover {
-    background-color: #f8f9fa;
-}
+.styled-table td { padding: 12px 15px; }
+.styled-table tbody tr { border-bottom: 1px solid #e2e8f0; background: #fff; }
+.styled-table tbody tr:last-of-type { border-bottom: none; }
+.styled-table tbody tr:hover { background-color: #f8fafc; }
 
-.action-buttons {
-    display: flex;
-    gap: 8px;
-}
+.action-buttons { display: flex; gap: 8px; }
 .btn { 
-    padding: 8px 12px; 
-    border: none; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    font-weight: 600; 
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; 
+    font-weight: 600; font-size: 13px; display: inline-flex;
+    align-items: center; gap: 5px; transition: all 0.2s;
+    text-decoration: none; /* Penting untuk tag <a> */
 }
-.btn-primary { background: #3498db; color: white; }
-.btn-primary:hover { background: #2980b9; }
-.btn-edit { background: #f39c12; color: white; }
-.btn-edit:hover { background: #e67e22; }
-.btn-danger { background: #e74c3c; color: white; }
-.btn-danger:hover { background: #c0392b; }
-.btn-secondary { background: #95a5a6; color: white; }
-.btn-secondary:hover { background: #7f8c8d; }
+.btn-edit { background: #f59e0b; color: white; }
+.btn-edit:hover { background: #d97706; }
+.btn-danger { background: #ef4444; color: white; }
+.btn-danger:hover { background: #dc2626; }
 
 .status-badge {
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
+    padding: 5px 10px; border-radius: 15px; font-size: 12px;
+    font-weight: 600; text-transform: uppercase;
 }
-.status-aktif {
-    background-color: #eafaf1;
-    color: #27ae60;
-}
-.status-tutup {
-    background-color: #fdedeb;
-    color: #e74c3c;
-}
+.status-aktif { background-color: #dcfce7; color: #16a34a; }
+.status-tutup { background-color: #fee2e2; color: #ef4444; }
 
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-    animation: fadeIn 0.3s;
-}
-.modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 25px;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 500px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    animation: slideIn 0.3s;
-}
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-.modal-header h3 {
-    margin: 0;
-    color: #2c3e50;
-}
-.close-btn {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.close-btn:hover,
-.close-btn:focus {
-    color: #333;
-}
-@keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
-@keyframes slideIn { from {transform: translateY(-50px)} to {transform: translateY(0)} }
-
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-.form-group input, .form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
+/* Alerts (Diambil dari file Anda) */
 .alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 500;
+    padding: 15px; margin-bottom: 24px; border: 1px solid transparent;
+    border-radius: 12px; display: flex; align-items: flex-start;
+    gap: 10px; font-weight: 500; box-shadow: 0 1px 5px rgba(0,0,0,0.05);
 }
-.alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-}
-.alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
+.alert-success { color: #065f46; background-color: #d1fae5; border-color: #a7f3d0; }
+.alert-danger { color: #991b1b; background-color: #fee2e2; border-color: #fca5a5; }
+
+@media (max-width: 768px) {
+    .styled-table { display: block; width: 100%; overflow-x: auto; }
+    .action-buttons { flex-direction: column; gap: 5px; }
 }
 </style>
 @endsection
 
 @section('content')
 
-<div class="card" style="margin-bottom: 20px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-    <h2 style="margin: 0;"><i class="fas fa-door-open"></i> Daftar Loket</h2>
-    <button class="btn btn-primary" onclick="openModal('createModal')">
+<div class="table-header-card">
+    <h2><i class="fas fa-door-open"></i> Daftar Loket</h2>
+    <a href="{{ route('admin.loket.create') }}" class="btn-add-new">
         <i class="fas fa-plus"></i> Tambah Loket Baru
-    </button>
+    </a>
 </div>
 
 @if (session('success'))
     <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i> {{ session('success') }}
+        <i class="fas fa-check-circle" style="font-size: 20px;"></i> <div>{{ session('success') }}</div>
     </div>
 @endif
 @if (session('error'))
     <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
+        <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i> <div>{{ session('error') }}</div>
     </div>
 @endif
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i> 
-        <div>
-            <strong>Gagal memproses data!</strong>
-            <ul style="margin: 5px 0 0 20px; padding: 0;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    </div>
-@endif
-
-<div class="card">
+<div class="card" style="padding: 0;">
     <table class="styled-table">
         <thead>
             <tr>
@@ -211,10 +126,10 @@
                     @endif
                 </td>
                 <td class="action-buttons">
-                    <button class="btn btn-edit" onclick="openModal('editModal-{{ $loket->id }}')">
+                    <a href="{{ route('admin.loket.edit', $loket->id) }}" class="btn btn-edit">
                         <i class="fas fa-edit"></i>
-                    </button>
-                    <form action="{{ route('admin.loket.destroy', $loket->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus loket ini?');" style="display:inline;">
+                    </a>
+                    <form action="{{ route('admin.loket.destroy', $loket->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus loket {{ $loket->nama_loket }}?');" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger">
@@ -225,136 +140,14 @@
             </tr>
             @empty
             <tr>
-                <td colspan="4" style="text-align: center; padding: 20px;">Belum ada data loket.</td>
+                <td colspan="4" style="text-align: center; padding: 20px; color: #64748b;">Belum ada data loket.</td>
             </tr>
             @endforelse
         </tbody>
     </table>
 </div>
 
-<div id="createModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-plus-circle"></i> Tambah Loket Baru</h3>
-            <span class="close-btn" onclick="closeModal('createModal')">&times;</span>
-        </div>
-        <form action="{{ route('admin.loket.store') }}" method="POST">
-            @csrf
-            <div class="form-group">
-                <label for="nama_loket">Nama Loket</label>
-                <input type="text" id="nama_loket" name="nama_loket" placeholder="Contoh: Ruang 1 / Konter A" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="layanan_id">Layanan yang Dilayani</label>
-                <select id="layanan_id" name="layanan_id" required>
-                    <option value="" disabled selected>-- Pilih Layanan --</option>
-                    @foreach($layanans as $layanan)
-                        <option value="{{ $layanan->id }}">{{ $layanan->nama_layanan }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="status">Status Awal</label>
-                <select id="status" name="status" required>
-                    <option value="aktif" selected>Aktif</option>
-                    <option value="tutup">Tutup</option>
-                </select>
-            </div>
-            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-@foreach($lokets as $loket)
-<div id="editModal-{{ $loket->id }}" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Edit Loket</h3>
-            <span class="close-btn" onclick="closeModal('editModal-{{ $loket->id }}')">&times;</span>
-        </div>
-        <form action="{{ route('admin.loket.update', $loket->id) }}" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="form-group">
-                <label for="nama_loket-{{ $loket->id }}">Nama Loket</label>
-                <input type="text" id="nama_loket-{{ $loket->id }}" name="nama_loket" value="{{ $loket->nama_loket }}" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="layanan_id-{{ $loket->id }}">Layanan yang Dilayani</label>
-                <select id="layanan_id-{{ $loket->id }}" name="layanan_id" required>
-                    <option value="" disabled>-- Pilih Layanan --</option>
-                    @foreach($layanans as $layanan)
-                        <option value="{{ $layanan->id }}" {{ $layanan->id == $loket->layanan_id ? 'selected' : '' }}>
-                            {{ $layanan->nama_layanan }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="status-{{ $loket->id }}">Status</label>
-                <select id="status-{{ $loket->id }}" name="status" required>
-                    <option value="aktif" {{ $loket->status == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                    <option value="tutup" {{ $loket->status == 'tutup' ? 'selected' : '' }}>Tutup</option>
-                </select>
-            </div>
-            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal-{{ $loket->id }}')">Batal</button>
-                <button type="submit" class"btn btn-primary"><i class="fas fa-save"></i> Update</button>
-            </div>
-        </form>
-    </div>
-</div>
-@endforeach
-
 @endsection
 
 @section('scripts')
-<script>
-// JavaScript ini SAMA PERSIS dengan halaman Layanan
-function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'block';
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-window.onclick = function(event) {
-    const modals = document.getElementsByClassName('modal');
-    for (let i = 0; i < modals.length; i++) {
-        if (event.target == modals[i]) {
-            modals[i].style.display = "none";
-        }
-    }
-}
-
-// Menangani error validasi dari Laravel
-@if ($errors->any())
-    @if (old('_method') === 'PUT')
-        @php
-            $errorId = null;
-            if (session()->has('_old_input')) {
-                $url = session()->get('_previous')['url'] ?? '';
-                preg_match('/\/(\d+)$/', $url, $matches);
-                if (isset($matches[1])) {
-                    $errorId = $matches[1];
-                }
-            }
-        @endphp
-        
-        @if ($errorId)
-            openModal('editModal-{{ $errorId }}');
-        @endif
-    @else
-        openModal('createModal');
-    @endif
-@endif
-</script>
 @endsection

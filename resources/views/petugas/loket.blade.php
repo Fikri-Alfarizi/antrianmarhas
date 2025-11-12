@@ -1,288 +1,413 @@
 ﻿<!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Loket Pelayanan</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>Loket Pelayanan - {{ $loket->nama_loket }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: auto;
+        /* Import Font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        /* Reset & Base */
+        *, *::before, *::after {
+            box-sizing: border-box;
         }
         
-        /* Header */
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Mencegah scroll di body */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc; /* Latar belakang modern */
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        /* Container Utama (Full Screen Grid) */
+        .petugas-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* Pembagian 2 kolom */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ================================= */
+        /* === KOLOM KIRI (AKSI) === */
+        /* ================================= */
+        .kolom-kiri {
+            display: flex;
+            flex-direction: column;
+            padding: 32px;
+            gap: 24px;
+            overflow-y: auto; /* Scroll darurat jika layar sangat kecil */
+            background: #f8fafc;
+        }
+
+        /* Info Header */
         .header-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px 24px;
         }
-        .header-card .title h1 {
-            margin: 0;
-            color: #2c3e50;
+        .header-info h1 {
             font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 4px 0;
         }
-        .header-card .title p {
+        .header-info p {
+            font-size: 15px;
+            color: #64748b;
             margin: 0;
-            color: #7f8c8d;
-            font-size: 16px;
+            font-weight: 500;
         }
-        .header-card .actions {
+        .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
         }
-
-        /* Tombol Buka/Tutup Loket */
-        .btn-toggle-loket {
-            padding: 10px 15px;
+        
+        /* Tombol Buka/Tutup & Logout (Gaya Modern) */
+        .btn-header {
+            padding: 10px 16px;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
+            border-radius: 10px;
             font-size: 14px;
-            transition: 0.2s;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .btn-toggle-loket.status-aktif {
-            background-color: #e74c3c;
-            color: white;
+        .btn-toggle-loket.btn-success {
+            background-color: #dcfce7;
+            color: #16a34a;
         }
-        .btn-toggle-loket.status-tutup {
-            background-color: #27ae60;
-            color: white;
+        .btn-toggle-loket.btn-success:hover { background-color: #bbf7d0; }
+        .btn-toggle-loket.btn-danger {
+            background-color: #fee2e2;
+            color: #ef4444;
         }
+        .btn-toggle-loket.btn-danger:hover { background-color: #fecaca; }
+        
         .btn-logout {
             background: none;
-            border: none;
-            color: #95a5a6;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 600;
+            color: #64748b;
+            font-size: 20px; /* Hanya ikon */
+            padding: 8px;
         }
-        .btn-logout:hover { color: #e74c3c; }
+        .btn-logout:hover {
+            color: #ef4444;
+            background-color: #fee2e2;
+        }
 
-        /* Card Antrian Saat Ini */
+        /* Kartu Antrian Saat Ini */
         .current-card {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 32px;
             text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            flex-grow: 1; /* Mengisi ruang sisa */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
         }
         .current-card p {
             font-size: 18px;
-            margin-bottom: 10px;
-            opacity: 0.9;
+            font-weight: 500;
+            color: #64748b;
+            margin: 0 0 10px 0;
         }
-        .current-card h2 {
-            font-size: 72px;
+        .current-card .nomor-display {
+            font-size: 120px;
             font-weight: 900;
             margin: 10px 0;
-            letter-spacing: 2px;
+            line-height: 1;
         }
-        .current-card .status-label {
-            display: inline-block;
-            padding: 8px 15px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 16px;
+        .current-card .status-display {
+            font-size: 20px;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 12px;
             margin-top: 10px;
         }
-        .current-card.empty {
-            background: #fff;
-            color: #7f8c8d;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        /* Status Warna Kartu Antrian */
+        .current-card.status-idle {
+            background: #f8fafc;
+            border-style: dashed;
         }
-        .current-card.empty h2 {
-            font-size: 60px;
-            color: #bdc3c7;
+        .current-card.status-idle .nomor-display { color: #cbd5e1; }
+        .current-card.status-idle .status-display { background: #e2e8f0; color: #64748b; }
+        
+        .current-card.status-dipanggil { border-color: #3b82f6; }
+        .current-card.status-dipanggil .nomor-display { color: #3b82f6; }
+        .current-card.status-dipanggil .status-display { background: #dbeafe; color: #2563eb; }
+        
+        .current-card.status-dilayani { border-color: #10b981; }
+        .current-card.status-dilayani .nomor-display { color: #10b981; }
+        .current-card.status-dilayani .status-display { background: #dcfce7; color: #16a34a; }
+
+        .current-card.status-tutup {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+            border-style: dashed;
         }
+        .current-card.status-tutup .nomor-display { color: #94a3b8; font-size: 90px; }
+        .current-card.status-tutup .status-display { background: #e2e8f0; color: #64748b; }
+
 
         /* Tombol Aksi */
         .action-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 16px;
         }
         .btn-aksi {
             padding: 20px;
             font-size: 18px;
             font-weight: 700;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
         .btn-aksi:disabled {
-            background-color: #ecf0f1;
-            color: #bdc3c7;
+            background: #e2e8f0;
+            color: #94a3b8;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-        #btn-panggil { background-color: #27ae60; color: white; }
-        #btn-panggil:hover:not(:disabled) { background-color: #229954; }
-        #btn-layani { background-color: #3498db; color: white; }
-        #btn-layani:hover:not(:disabled) { background-color: #2980b9; }
-        
-        .sub-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        #btn-selesai { background-color: #9b59b6; color: white; }
-        #btn-selesai:hover:not(:disabled) { background-color: #8e44ad; }
-        #btn-batalkan { background-color: #e74c3c; color: white; }
-        #btn-batalkan:hover:not(:disabled) { background-color: #c0392b; }
 
-        /* Grid Kolom Daftar */
-        .lists-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        /* Warna Tombol Aksi */
+        #btn-panggil { background-color: #10b981; color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
+        #btn-panggil:hover:not(:disabled) { background-color: #059669; transform: translateY(-2px); }
+        
+        #btn-layani { background-color: #3b82f6; color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2); }
+        #btn-layani:hover:not(:disabled) { background-color: #2563eb; transform: translateY(-2px); }
+        
+        .sub-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        
+        #btn-selesai { background-color: #8b5cf6; color: white; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); }
+        #btn-selesai:hover:not(:disabled) { background-color: #7c3aed; }
+        
+        #btn-batalkan { background-color: #ef4444; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2); }
+        #btn-batalkan:hover:not(:disabled) { background-color: #dc2626; }
+
+        /* ================================= */
+        /* === KOLOM KANAN (INFO) === */
+        /* ================================= */
+        .kolom-kanan {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #ffffff;
+            border-left: 1px solid #e2e8f0;
+            overflow: hidden; /* Penting */
         }
-        .list-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            overflow: hidden;
+        .list-wrapper {
+            flex: 1; /* Membuat kedua list membagi ruang 50/50 */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Penting */
         }
-        .list-card h3 {
-            padding: 15px 20px;
-            background: #f9f9f9;
-            border-bottom: 1px solid #f0f0f0;
-            color: #2c3e50;
+        .list-wrapper:first-child {
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .list-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .list-header h3 {
             font-size: 16px;
-        }
-        .list-card h3 .badge {
-            background: #3498db;
-            color: white;
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            margin-left: 5px;
-        }
-        .list-card ul {
-            list-style: none;
-            padding: 10px;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        .list-card li {
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 10px;
-            border-bottom: 1px dashed #f0f0f0;
+        }
+        .list-header .badge {
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        /* Ini adalah list yang bisa scroll */
+        .list-body {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding: 8px;
+        }
+        .list-body ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .list-body li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .list-body li:hover {
+            background-color: #f8fafc;
+        }
+        .list-body li strong {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .list-body li span {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .list-body .empty-list {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
             font-size: 14px;
         }
-        .list-card li:last-child { border-bottom: none; }
-        .list-card li strong {
-            font-size: 16px;
-            color: #333;
+        
+        /* Style untuk Riwayat */
+        #list-riwayat li strong {
+            font-weight: 500;
         }
-        .list-card li span {
-            font-size: 12px;
-            color: #95a5a6;
+        #list-riwayat li .status-selesai {
+            color: #16a34a;
+            font-weight: 600;
         }
-        .list-card .empty-list {
-            padding: 30px;
-            text-align: center;
-            color: #95a5a6;
+        #list-riwayat li .status-batal {
+            color: #ef4444;
+            font-weight: 600;
         }
 
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .header-card { flex-direction: column; gap: 15px; }
-            .lists-grid { grid-template-columns: 1fr; }
-            .current-card h2 { font-size: 56px; }
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .petugas-container {
+                grid-template-columns: 1fr; /* Stack kolom di mobile */
+                height: auto;
+                overflow-y: auto; /* Izinkan scroll di mobile */
+            }
+            .kolom-kanan {
+                height: 600px; /* Batasi tinggi kolom kanan di mobile */
+            }
+            .current-card .nomor-display {
+                font-size: 90px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header-card">
-            <div class="title">
-                <h1>{{ $loket->nama_loket }}</h1>
-                <p>{{ $loket->layanan->nama_layanan }}</p>
-            </div>
-            <div class="actions">
-                <button class="btn-toggle-loket status-{{ $loket->status }}" id="btn-toggle-loket" onclick="toggleLoket()">
-                    <i class="fas fa-power-off"></i>
-                    <span id="toggle-loket-text">{{ $loket->status == 'aktif' ? 'Tutup Loket' : 'Buka Loket' }}</span>
-                </button>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn-logout" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i> Logout
+    <div class="petugas-container">
+        
+        <div class="kolom-kiri">
+            
+            <div class="header-card">
+                <div class="header-info">
+                    <h1>{{ $loket->nama_loket }}</h1>
+                    <p>{{ $loket->layanan->nama_layanan }}</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-header btn-toggle-loket" id="btn-toggle-loket" onclick="toggleLoket()">
+                        <i class="fas fa-power-off"></i>
+                        <span id="toggle-loket-text">...</span>
                     </button>
-                </form>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn-header btn-logout" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <div class="current-card empty" id="current-antrian-card">
-            <p>Antrian Saat Ini</p>
-            <h2 id="current-kode">-</h2>
-            <span class="status-label" id="current-status">Tidak Ada Antrian</span>
-        </div>
+            <div class="current-card status-idle" id="current-antrian-card">
+                <p>Antrian Saat Ini</p>
+                <h2 class="nomor-display" id="current-kode">-</h2>
+                <span class="status-display" id="current-status">Tidak Ada Antrian</span>
+            </div>
 
-        <div class="action-grid">
-            <button class="btn-aksi" id="btn-panggil" onclick="panggil()">
-                <i class="fas fa-bullhorn"></i> PANGGIL BERIKUTNYA
-            </button>
-            <button class="btn-aksi" id="btn-layani" onclick="layani()">
-                <i class="fas fa-play-circle"></i> MULAI LAYANI
-            </button>
-            <div class="sub-actions">
-                <button class="btn-aksi" id="btn-selesai" onclick="selesai()">
-                    <i class="fas fa-check-circle"></i> SELESAI
+            <div class="action-grid">
+                <button class="btn-aksi" id="btn-panggil" onclick="panggil()">
+                    <i class="fas fa-bullhorn"></i> PANGGIL BERIKUTNYA
                 </button>
-                <button class="btn-aksi" id="btn-batalkan" onclick="batalkan()">
-                    <i class="fas fa-times-circle"></i> BATALKAN
+                <button class="btn-aksi" id="btn-layani" onclick="layani()">
+                    <i class="fas fa-play-circle"></i> MULAI LAYANI
                 </button>
+                <div class="sub-actions">
+                    <button class="btn-aksi" id="btn-selesai" onclick="selesai()">
+                        <i class="fas fa-check-circle"></i> SELESAI
+                    </button>
+                    <button class="btn-aksi" id="btn-batalkan" onclick="batalkan()">
+                        <i class="fas fa-times-circle"></i> BATALKAN
+                    </button>
+                </div>
             </div>
+
         </div>
 
-        <div class="lists-grid">
-            <div class="list-card">
-                <h3>Daftar Menunggu <span class="badge" id="count-menunggu">0</span></h3>
-                <ul id="list-menunggu">
-                    <li class="empty-list">Tidak ada antrian menunggu.</li>
-                </ul>
+        <div class="kolom-kanan">
+            
+            <div class="list-wrapper">
+                <div class="list-header">
+                    <h3>
+                        Daftar Menunggu
+                        <span class="badge" id="count-menunggu">0</span>
+                    </h3>
+                </div>
+                <div class="list-body">
+                    <ul id="list-menunggu">
+                        <li class="empty-list">Memuat antrian...</li>
+                    </ul>
+                </div>
             </div>
-            <div class="list-card">
-                <h3>Riwayat Hari Ini <span class="badge" id="count-selesai">0</span></h3>
-                <ul id="list-riwayat">
-                    <li class="empty-list">Belum ada riwayat.</li>
-                </ul>
+            
+            <div class="list-wrapper">
+                <div class="list-header">
+                    <h3>
+                        Riwayat Hari Ini
+                        <span class="badge" id="count-selesai">0</span>
+                    </h3>
+                </div>
+                <div class="list-body">
+                    <ul id="list-riwayat">
+                        <li class="empty-list">Memuat riwayat...</li>
+                    </ul>
+                </div>
             </div>
+
         </div>
+
     </div>
     
     @vite(['resources/js/bootstrap.js'])
@@ -328,7 +453,6 @@
                 
                 const data = await response.json();
                 
-                // Cek jika ada error dari server
                 if (data.error) {
                     console.error('[ANTRIAN ERROR]', data.error);
                     updateCurrentCard(null);
@@ -337,12 +461,12 @@
                     return;
                 }
                 
-                currentAntrian = data.current; // Simpan antrian saat ini
-                loketStatus = data.loket_status; // Simpan status loket
+                currentAntrian = data.current; 
+                loketStatus = data.loket_status; 
                 
                 updateCurrentCard(data.current);
                 updateWaitingList(data.waiting || [], data.stats?.menunggu_total || 0);
-                updateHistoryList(data.history || [], data.stats?.selesai || 0);
+                updateHistoryList(data.history || [], data.stats?.selesai_total || 0); // Menggunakan stats.selesai_total
                 updateButtonState();
                 updateLoketStatusUI();
                 
@@ -350,7 +474,12 @@
 
             } catch (error) {
                 console.error("[ANTRIAN ERROR] Gagal mengambil data antrian:", error);
-                alert('❌ Gagal memuat data antrian. Hubungi administrator.\n\nError: ' + error.message);
+                // Non-aktifkan tombol jika fetch gagal
+                btnPanggil.disabled = true;
+                btnLayani.disabled = true;
+                btnSelesai.disabled = true;
+                btnBatalkan.disabled = true;
+                currentStatus.textContent = "Error Koneksi";
             }
         }
 
@@ -358,12 +487,29 @@
          * Update Kartu Antrian Saat Ini
          */
         function updateCurrentCard(antrian) {
+            // Hapus semua status kelas
+            currentCard.classList.remove('status-idle', 'status-dipanggil', 'status-dilayani', 'status-tutup');
+
+            if (loketStatus === 'tutup') {
+                currentCard.classList.add('status-tutup');
+                currentKode.textContent = "LOKET";
+                currentStatus.textContent = "TUTUP";
+                return;
+            }
+
             if (antrian) {
-                currentCard.classList.remove('empty');
                 currentKode.textContent = antrian.kode_antrian;
                 currentStatus.textContent = antrian.status.toUpperCase();
+                
+                if (antrian.status === 'dipanggil') {
+                    currentCard.classList.add('status-dipanggil');
+                } else if (antrian.status === 'dilayani') {
+                    currentCard.classList.add('status-dilayani');
+                } else {
+                    currentCard.classList.add('status-idle'); // Fallback
+                }
             } else {
-                currentCard.classList.add('empty');
+                currentCard.classList.add('status-idle');
                 currentKode.textContent = "-";
                 currentStatus.textContent = "Tidak Ada Antrian";
             }
@@ -382,7 +528,7 @@
             waiting.forEach(a => {
                 html += `<li>
                             <strong>${a.kode_antrian}</strong>
-                            <span>${new Date(a.waktu_ambil).toLocaleTimeString('id-ID')}</span>
+                            <span>${new Date(a.waktu_ambil).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                          </li>`;
             });
             listMenunggu.innerHTML = html;
@@ -399,12 +545,14 @@
             }
             let html = '';
             history.forEach(a => {
+                const statusClass = a.status === 'batal' ? 'status-batal' : 'status-selesai';
+                const time = a.waktu_selesai || a.waktu_panggil || a.waktu_ambil; // Fallback waktu
                 html += `<li>
                             <div>
                                 <strong>${a.kode_antrian}</strong>
-                                <span style="display: block; color: ${a.status === 'batal' ? '#e74c3c' : '#27ae60'};">${a.status.toUpperCase()}</span>
+                                <span style="display: block;" class="${statusClass}">${a.status.toUpperCase()}</span>
                             </div>
-                            <span>${new Date(a.waktu_selesai).toLocaleTimeString('id-ID')}</span>
+                            <span>${new Date(time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
                          </li>`;
             });
             listRiwayat.innerHTML = html;
@@ -414,15 +562,11 @@
          * Mengatur tombol mana yang bisa diklik
          */
         function updateButtonState() {
-            // Jika loket ditutup, nonaktifkan semua tombol aksi
             if (loketStatus === 'tutup') {
                 btnPanggil.disabled = true;
                 btnLayani.disabled = true;
                 btnSelesai.disabled = true;
                 btnBatalkan.disabled = true;
-                currentCard.classList.add('empty');
-                currentKode.textContent = "LOKET";
-                currentStatus.textContent = "TUTUP";
                 return;
             }
 
@@ -430,7 +574,7 @@
                 if (currentAntrian.status === 'dipanggil') {
                     btnPanggil.disabled = true;
                     btnLayani.disabled = false;
-                    btnSelesai.disabled = false; // Bisa langsung selesai
+                    btnSelesai.disabled = false;
                     btnBatalkan.disabled = false;
                 } else if (currentAntrian.status === 'dilayani') {
                     btnPanggil.disabled = true;
@@ -439,8 +583,7 @@
                     btnBatalkan.disabled = false;
                 }
             } else {
-                // Tidak ada antrian dilayani
-                btnPanggil.disabled = false;
+                btnPanggil.disabled = false; // Bisa memanggil jika tidak ada antrian
                 btnLayani.disabled = true;
                 btnSelesai.disabled = true;
                 btnBatalkan.disabled = true;
@@ -452,12 +595,12 @@
          */
         function updateLoketStatusUI() {
             if (loketStatus === 'aktif') {
-                btnToggleLoket.classList.remove('status-tutup');
-                btnToggleLoket.classList.add('status-aktif');
+                btnToggleLoket.classList.remove('btn-success');
+                btnToggleLoket.classList.add('btn-danger');
                 toggleLoketText.textContent = 'Tutup Loket';
             } else {
-                btnToggleLoket.classList.remove('status-aktif');
-                btnToggleLoket.classList.add('status-tutup');
+                btnToggleLoket.classList.remove('btn-danger');
+                btnToggleLoket.classList.add('btn-success');
                 toggleLoketText.textContent = 'Buka Loket';
             }
         }
@@ -466,6 +609,12 @@
          * Fungsi POST universal untuk tombol
          */
         async function postAksi(url, aksi) {
+            // Nonaktifkan semua tombol sementara
+            btnPanggil.disabled = true;
+            btnLayani.disabled = true;
+            btnSelesai.disabled = true;
+            btnBatalkan.disabled = true;
+
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -476,12 +625,13 @@
                 });
                 const data = await response.json();
                 if (!data.success) {
-                    alert('Error: ' + data.message);
+                    alert('Error: ' (data.message || 'Aksi gagal'));
                 }
                 fetchAntrianData(); // Refresh data setelah aksi
             } catch (error) {
                 console.error(`Gagal ${aksi}:`, error);
                 alert(`Gagal ${aksi}. Periksa konsol.`);
+                fetchAntrianData(); // Refresh data
             }
         }
 
@@ -510,6 +660,7 @@
                         loketStatus = data.new_status;
                         updateLoketStatusUI();
                         updateButtonState(); // Nonaktifkan/aktifkan tombol
+                        updateCurrentCard(currentAntrian); // Update kartu besar
                     }
                 } catch (error) {
                     console.error('Gagal toggle loket:', error);
@@ -523,26 +674,23 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Halaman Loket Petugas Dimuat.');
             
-            // 1. Ambil data pertama kali
             fetchAntrianData();
             
-            // 2. Polling fallback setiap 5 detik
-            setInterval(fetchAntrianData, 5000);
+            setInterval(fetchAntrianData, 5000); // Polling fallback
 
-            // 3. Listener Real-time (Echo)
             if (typeof Echo !== 'undefined') {
                 console.log('Echo terdeteksi, mencoba terhubung ke channel...');
-                Echo.channel('antrian-channel')
+                Echo.channel('antrian') // Nama channel publik
                     .listen('.antrian.dipanggil', (e) => {
                         console.log('Event [antrian.dipanggil] diterima:', e);
-                        // Jika antrian yang dipanggil relevan dengan layanan ini
+                        // Cek apakah event ini untuk layanan yang dilayani loket ini
                         if (e.layanan_id === {{ $loket->layanan_id }}) {
                             fetchAntrianData();
                         }
                     })
                     .listen('.loket.status.updated', (e) => {
                         console.log('Event [loket.status.updated] diterima:', e);
-                        // Jika loket ini yang diupdate (misal oleh admin)
+                        // Cek apakah event ini untuk loket ini
                         if (e.loket_id === {{ $loket->id }}) {
                             fetchAntrianData();
                         }
@@ -551,7 +699,6 @@
                         console.error('Echo connection error:', error);
                     });
                 
-                // Monitor koneksi Echo
                 Echo.connector.pusher.connection.bind('connected', () => {
                     console.log('Echo BERHASIL terhubung (Real-time Aktif).');
                 });

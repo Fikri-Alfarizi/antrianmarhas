@@ -18,11 +18,19 @@ class PenggunaController extends Controller
     {
         $users = User::with('loket')->orderBy('name', 'asc')->get();
         
-        // Ambil semua loket untuk dropdown di modal
-        // Kita akan validasi di controller jika loket sudah terisi
+        // Ambil semua loket untuk dropdown di form
         $lokets = Loket::orderBy('nama_loket', 'asc')->get();
         
         return view('admin.pengguna.index', compact('users', 'lokets'));
+    }
+
+    /**
+     * [BARU] Menampilkan form untuk membuat pengguna baru.
+     */
+    public function create()
+    {
+        $lokets = Loket::orderBy('nama_loket', 'asc')->get();
+        return view('admin.pengguna.create', compact('lokets'));
     }
 
     /**
@@ -61,6 +69,15 @@ class PenggunaController extends Controller
 
         return redirect()->route('admin.pengguna.index')
                          ->with('success', 'Pengguna baru berhasil ditambahkan.');
+    }
+
+    /**
+     * [BARU] Menampilkan form untuk mengedit pengguna.
+     */
+    public function edit(User $pengguna)
+    {
+        $lokets = Loket::orderBy('nama_loket', 'asc')->get();
+        return view('admin.pengguna.edit', compact('pengguna', 'lokets'));
     }
 
     /**
@@ -118,9 +135,8 @@ class PenggunaController extends Controller
      */
     public function destroy(string $id)
     {
-        // Jangan hapus user ID 1 (biasanya Super Admin)
         if ($id == 1) {
-             return redirect()->route('admin.pengguna.index')
+            return redirect()->route('admin.pengguna.index')
                              ->with('error', 'Admin utama (ID 1) tidak dapat dihapus.');
         }
         

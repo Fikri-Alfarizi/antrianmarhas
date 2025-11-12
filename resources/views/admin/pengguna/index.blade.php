@@ -3,432 +3,184 @@
 
 @section('styles')
 <style>
-/* CSS ini SAMA PERSIS dengan halaman Layanan/Loket */
+/* ========================================================= */
+/* --- 1. Base Styling (Konsisten dengan App Layout) --- */
+/* ========================================================= */
+.card {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); padding: 24px;
+    margin-bottom: 24px;
+}
+.table-header-card {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; padding: 15px 24px; background: #ffffff;
+    border: 1px solid #e2e8f0; border-radius: 16px;
+}
+.table-header-card h2 { margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; }
+.btn-submit-header { /* Style untuk Tombol Tambah Pengguna Baru */
+    padding: 10px 18px; border: none; border-radius: 12px; font-size: 14px; 
+    font-weight: 700; cursor: pointer; transition: all 0.25s;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    text-decoration: none; /* Penting untuk tag <a> */
+}
+.btn-submit-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+
+/* ========================================================= */
+/* --- 2. Table & User Info Styling (Dari UI Desired) --- */
+/* ========================================================= */
+
+.table-wrapper { overflow-x: auto; }
 .styled-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0;
-    font-size: 0.9em;
-    min-width: 400px;
-    border-radius: 8px 8px 0 0;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%; min-width: 800px; border-collapse: collapse; margin: 0; font-size: 0.9em;
+    overflow: hidden; border: 1px solid #e2e8f0; border-radius: 12px;
 }
 .styled-table thead tr {
-    background-color: #2c3e50;
-    color: #ffffff;
-    text-align: left;
+    background-color: #f8fafc; color: #64748b; text-align: left;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
 }
-.styled-table th,
-.styled-table td {
-    padding: 12px 15px;
-}
-.styled-table tbody tr {
-    border-bottom: 1px solid #f0f0f0;
-    background: #fff;
-}
-.styled-table tbody tr:last-of-type {
-    border-bottom: 2px solid #2c3e50;
-}
-.styled-table tbody tr:hover {
-    background-color: #f8f9fa;
-}
+.styled-table th, .styled-table td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; }
+.styled-table tbody tr:hover { background-color: #f8fafc; }
+.styled-table tbody tr:last-child td { border-bottom: none; }
 
-.action-buttons {
-    display: flex;
-    gap: 8px;
+/* User Info Styling */
+.user-info { display: flex; align-items: center; gap: 12px; }
+.user-avatar { 
+    width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; 
+    display: flex; align-items: center; justify-content: center; color: white; 
+    font-weight: 600; font-size: 14px; flex-shrink: 0; 
 }
-.btn { 
-    padding: 8px 12px; 
-    border: none; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    font-weight: 600; 
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-.btn-primary { background: #3498db; color: white; }
-.btn-primary:hover { background: #2980b9; }
-.btn-edit { background: #f39c12; color: white; }
-.btn-edit:hover { background: #e67e22; }
-.btn-danger { background: #e74c3c; color: white; }
-.btn-danger:hover { background: #c0392b; }
-.btn-secondary { background: #95a5a6; color: white; }
-.btn-secondary:hover { background: #7f8c8d; }
+.user-details { display: flex; flex-direction: column; }
+.user-name { font-weight: 600; color: #0f172a; }
+.user-username { font-size: 12px; color: #64748b; }
 
+/* Badge Styles */
 .status-badge {
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: 600; 
     text-transform: uppercase;
 }
-.status-admin {
-    background-color: #e8daef;
-    color: #8e44ad;
-}
-.status-operator {
-    background-color: #eafaf1;
-    color: #27ae60;
-}
+.status-admin { background-color: #fecaca; color: #991b1b; }
+.status-operator { background-color: #dbeafe; color: #1e40af; }
 
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-    animation: fadeIn 0.3s;
-}
-.modal-content {
-    background-color: #fefefe;
-    margin: 5% auto; /* Margin atas dikecilkan agar muat banyak form */
-    padding: 25px;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 500px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    animation: slideIn 0.3s;
-}
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-.modal-header h3 {
-    margin: 0;
-    color: #2c3e50;
-}
-.close-btn {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.close-btn:hover,
-.close-btn:focus {
-    color: #333;
-}
-@keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
-@keyframes slideIn { from {transform: translateY(-50px)} to {transform: translateY(0)} }
 
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-.form-group input, .form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+/* Tombol Aksi */
+.action-buttons { display: flex; gap: 8px; }
+.btn { 
+    padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; 
+    font-weight: 600; font-size: 13px; display: inline-flex; align-items: center;
+    gap: 5px; transition: all 0.2s; color: white; text-decoration: none;
 }
+.btn-edit { background: #f59e0b; }
+.btn-edit:hover { background: #d97706; }
+.btn-danger { background: #ef4444; }
+.btn-danger:hover { background: #dc2626; }
 
-.alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 500;
-}
-.alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-}
-.alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-}
+
+/* Alerts */
+.alert { padding: 15px; margin-bottom: 24px; border-radius: 12px; display: flex; align-items: flex-start; gap: 10px; font-weight: 500; }
+.alert-success { color: #065f46; background-color: #d1fae5; border-color: #a7f3d0; }
+.alert-danger { color: #991b1b; background-color: #fee2e2; border-color: #fca5a5; }
+
 </style>
 @endsection
 
 @section('content')
 
-<div class="card" style="margin-bottom: 20px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-    <h2 style="margin: 0;"><i class="fas fa-users-cog"></i> Daftar Pengguna</h2>
-    <button class="btn btn-primary" onclick="openModal('createModal')">
+<div class="table-header-card">
+    <h2><i class="fas fa-users-cog"></i> Daftar Pengguna</h2>
+    <!-- LINK ke halaman CREATE -->
+    <a href="{{ route('admin.pengguna.create') }}" class="btn-submit-header">
         <i class="fas fa-plus"></i> Tambah Pengguna Baru
-    </button>
+    </a>
 </div>
 
 @if (session('success'))
     <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i> {{ session('success') }}
+        <i class="fas fa-check-circle" style="font-size: 20px;"></i> <div>{{ session('success') }}</div>
     </div>
 @endif
 @if (session('error'))
     <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
+        <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i> <div>{{ session('error') }}</div>
     </div>
 @endif
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i> 
-        <div>
-            <strong>Gagal memproses data!</strong>
-            <ul style="margin: 5px 0 0 20px; padding: 0;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    </div>
-@endif
+<!-- Error validasi tidak akan muncul di sini -->
 
-<div class="card">
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>Nama Lengkap</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Loket Ditugaskan</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($users as $user)
-            <tr>
-                <td><strong>{{ $user->name }}</strong></td>
-                <td>{{ $user->username }}</td>
-                <td>
-                    @if($user->role == 'admin')
-                        <span class="status-badge status-admin">Admin</span>
-                    @else
-                        <span class="status-badge status-operator">Operator</span>
-                    @endif
-                </td>
-                <td>{{ $user->loket->nama_loket ?? 'N/A' }}</td>
-                <td class="action-buttons">
-                    <button class="btn btn-edit" onclick="openModal('editModal-{{ $user->id }}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    @if($user->id != 1) {{-- Admin utama (ID 1) tidak bisa dihapus --}}
-                    <form action="{{ route('admin.pengguna.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?');" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </form>
-                    @endif
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="5" style="text-align: center; padding: 20px;">Belum ada data pengguna.</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
-
-<div id="createModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-plus-circle"></i> Tambah Pengguna Baru</h3>
-            <span class="close-btn" onclick="closeModal('createModal')">&times;</span>
-        </div>
-        <form action="{{ route('admin.pengguna.store') }}" method="POST">
-            @csrf
-            <div class="form-group">
-                <label for="name_create">Nama Lengkap</label>
-                <input type="text" id="name_create" name="name" value="{{ old('name') }}" required>
-            </div>
-            <div class="form-group">
-                <label for="username_create">Username</label>
-                <input type="text" id="username_create" name="username" value="{{ old('username') }}" required>
-            </div>
-            <div class="form-group">
-                <label for="email_create">Email</label>
-                <input type="email" id="email_create" name="email" value="{{ old('email') }}" required>
-            </div>
-            <div class="form-group">
-                <label for="password_create">Password</label>
-                <input type="password" id="password_create" name="password" required>
-            </div>
-            <div class="form-group">
-                <label for="role_create">Role</label>
-                <select id="role_create" name="role" required onchange="toggleLoket('create')">
-                    <option value="operator" {{ old('role') == 'operator' ? 'selected' : '' }}>Operator Loket</option>
-                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option>
-                </select>
-            </div>
-            <div class="form-group" id="loket_group_create">
-                <label for="loket_id_create">Tugaskan ke Loket</label>
-                <select id="loket_id_create" name="loket_id">
-                    <option value="" disabled selected>-- Pilih Loket --</option>
-                    @foreach($lokets as $loket)
-                        <option value="{{ $loket->id }}" {{ old('loket_id') == $loket->id ? 'selected' : '' }}>
-                            {{ $loket->nama_loket }}
-                            {{-- Cek apakah loket sudah terisi --}}
-                            @if($loket->users->count() > 0)
-                                (Ditugaskan ke: {{ $loket->users->first()->name }})
-                            @endif
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            
-            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
-            </div>
-        </form>
+<div class="card" style="padding: 0;">
+    <div class="table-wrapper">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Pengguna</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Loket Ditugaskan</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($users as $user)
+                <tr>
+                    <td>
+                        <div class="user-info">
+                            {{-- Mendapatkan inisial --}}
+                            @php
+                                $initials = implode('', array_map(function($word) {
+                                    return strtoupper(substr($word, 0, 1));
+                                }, explode(' ', $user->name)));
+                                $bgColor = $user->role == 'admin' ? '#ef4444' : '#3b82f6';
+                                $initials = substr($initials, 0, 2);
+                            @endphp
+                            <div class="user-avatar" style="background: {{ $bgColor }};">{{ $initials }}</div>
+                            <div class="user-details">
+                                <div class="user-name">{{ $user->name }}</div>
+                                <div class="user-username">{{ $user->username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ $user->email }}</td>
+                    <td>
+                        <span class="status-badge status-{{ $user->role }}">
+                            {{ ucfirst($user->role) }}
+                        </span>
+                    </td>
+                    <td>{{ $user->loket->nama_loket ?? 'N/A' }}</td>
+                    <td class="action-buttons">
+                        <!-- LINK ke halaman EDIT -->
+                        <a href="{{ route('admin.pengguna.edit', $user->id) }}" class="btn btn-edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        
+                        @if($user->id != 1) 
+                        <form action="{{ route('admin.pengguna.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna {{ $user->name }}?');" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">
+                        <i class="fas fa-user-slash" style="font-size: 32px; margin-bottom: 10px; display: block; color: #cbd5e1;"></i>
+                        Belum ada data pengguna.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
-
-@foreach($users as $user)
-<div id="editModal-{{ $user->id }}" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Edit Pengguna</h3>
-            <span class="close-btn" onclick="closeModal('editModal-{{ $user->id }}')">&times;</span>
-        </div>
-        <form action="{{ route('admin.pengguna.update', $user->id) }}" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="form-group">
-                <label for="name_edit-{{ $user->id }}">Nama Lengkap</label>
-                <input type="text" id="name_edit-{{ $user->id }}" name="name" value="{{ old('name', $user->name) }}" required>
-            </div>
-            <div class="form-group">
-                <label for="username_edit-{{ $user->id }}">Username</label>
-                <input type="text" id="username_edit-{{ $user->id }}" name="username" value="{{ old('username', $user->username) }}" required>
-            </div>
-             <div class="form-group">
-                <label for="email_edit-{{ $user->id }}">Email</label>
-                <input type="email" id="email_edit-{{ $user->id }}" name="email" value="{{ old('email', $user->email) }}" required>
-            </div>
-            <div class="form-group">
-                <label for="password_edit-{{ $user->id }}">Password Baru</label>
-                <input type="password" id="password_edit-{{ $user->id }}" name="password">
-                <small style="color: #999;">Kosongkan jika tidak ingin mengubah password.</small>
-            </div>
-            <div class="form-group">
-                <label for="role_edit-{{ $user->id }}">Role</label>
-                <select id="role_edit-{{ $user->id }}" name="role" required onchange="toggleLoket('edit-{{ $user->id }}')">
-                    <option value="operator" {{ old('role', $user->role) == 'operator' ? 'selected' : '' }}>Operator Loket</option>
-                    <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrator</option>
-                </select>
-            </div>
-            <div class="form-group" id="loket_group_edit-{{ $user->id }}">
-                <label for="loket_id_edit-{{ $user->id }}">Tugaskan ke Loket</label>
-                <select id="loket_id_edit-{{ $user->id }}" name="loket_id">
-                    <option value="" disabled>-- Pilih Loket --</option>
-                    @foreach($lokets as $loket)
-                        <option value="{{ $loket->id }}" {{ old('loket_id', $user->loket_id) == $loket->id ? 'selected' : '' }}>
-                            {{ $loket->nama_loket }}
-                            {{-- Cek apakah loket sudah terisi oleh ORANG LAIN --}}
-                            @if($loket->users->count() > 0 && $loket->users->first()->id != $user->id)
-                                (Ditugaskan ke: {{ $loket->users->first()->name }})
-                            @endif
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal-{{ $user->id }}')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
-            </div>
-        </form>
-    </div>
-</div>
-@endforeach
 
 @endsection
 
 @section('scripts')
-<script>
-// JS untuk Modal (SAMA SEPERTI SEBELUMNYA)
-function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'block';
-    
-    // Panggil toggleLoket saat modal edit dibuka
-    if(modalId.includes('edit')) {
-        const id = modalId.split('-')[1];
-        toggleLoket('edit-' + id);
-    } else if(modalId === 'createModal') {
-        toggleLoket('create');
-    }
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-window.onclick = function(event) {
-    const modals = document.getElementsByClassName('modal');
-    for (let i = 0; i < modals.length; i++) {
-        if (event.target == modals[i]) {
-            modals[i].style.display = "none";
-        }
-    }
-}
-
-/**
- * JS untuk menampilkan/menyembunyikan dropdown loket
- * berdasarkan pilihan Role.
- * 'suffix' bisa berupa 'create' atau 'edit-1', 'edit-2', dst.
- */
-function toggleLoket(suffix) {
-    const roleSelect = document.getElementById('role_' + suffix);
-    const loketGroup = document.getElementById('loket_group_' + suffix);
-    
-    if (roleSelect && loketGroup) {
-        if (roleSelect.value === 'operator') {
-            loketGroup.style.display = 'block';
-        } else {
-            loketGroup.style.display = 'none';
-        }
-    }
-}
-
-// Menangani error validasi dari Laravel
-@if ($errors->any())
-    @if (old('_method') === 'PUT')
-        @php
-            $errorId = null;
-            if (session()->has('_old_input')) {
-                $url = session()->get('_previous')['url'] ?? '';
-                preg_match('/\/(\d+)$/', $url, $matches);
-                if (isset($matches[1])) {
-                    $errorId = $matches[1];
-                }
-            }
-        @endphp
-        
-        @if ($errorId)
-            openModal('editModal-{{ $errorId }}');
-        @endif
-    @else
-        openModal('createModal');
-    @endif
-@endif
-
-// Jalankan toggleLoket untuk semua modal edit saat halaman dimuat
-// Ini untuk memastikan tampilan dropdown loket sesuai dengan data awal
-document.addEventListener('DOMContentLoaded', function() {
-    @foreach($users as $user)
-        toggleLoket('edit-{{ $user->id }}');
-    @endforeach
-    
-    // Jalankan juga untuk modal create
-    toggleLoket('create');
-});
-</script>
 @endsection

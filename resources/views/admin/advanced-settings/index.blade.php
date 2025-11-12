@@ -3,89 +3,166 @@
 
 @section('styles')
 <style>
-/* CSS ini SAMA PERSIS dengan halaman Audio Settings */
-.setting-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-.setting-card h3 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
-.form-group input, .form-group select { 
-    width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; 
+/* ========================================================= */
+/* --- 1. Base Styling (Konsisten dengan App Layout) --- */
+/* ========================================================= */
+.page-header { margin-bottom: 32px; }
+.page-title { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; }
+.page-subtitle { font-size: 14px; color: #64748b; margin: 0; font-weight: 500; }
+
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-bottom: 24px;
 }
-.form-group small { color: #999; font-size: 0.8rem; margin-top: 5px; display: block; }
+.card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ========================================================= */
+/* --- 2. Form Styling (Modern) --- */
+/* ========================================================= */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.form-group { margin-bottom: 10px; } /* Disesuaikan agar tidak terlalu renggang */
+.form-group label { 
+    display: block; 
+    margin-bottom: 6px; 
+    font-weight: 600; 
+    font-size: 12px; 
+    color: #475569;
+}
+.form-group input, 
+.form-group select {
+    width: 100%;
+    padding: 10px 14px; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 10px; 
+    font-size: 14px;
+    color: #1e293b;
+    background: #ffffff;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s;
+}
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3b82f6; 
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.form-group small { 
+    color: #64748b; /* Warna disamakan */
+    font-size: 11px; /* Dikecilkan */
+    margin-top: 6px; 
+    display: block; 
+}
 
 /* Input khusus (Time, Color) */
 .form-group input[type="time"],
 .form-group input[type="color"] {
     padding: 8px;
-    height: 40px;
+    height: 44px; /* Samakan tinggi */
 }
 .form-group input[type="color"] {
     max-width: 100px;
 }
 
-/* Tombol */
+/* Tombol (Modern) */
 .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-.btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
-.btn-primary { background: #3498db; color: white; }
-.btn-primary:hover { background: #2980b9; }
-
-/* Toggle Switch */
-.toggle-switch { display: inline-flex; align-items: center; gap: 10px; }
-.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: #27ae60; }
-input:checked + .slider:before { transform: translateX(26px); }
-
-/* Grid untuk form */
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+.btn-primary { 
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+    color: white; 
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    padding: 10px 16px; border: none; border-radius: 12px; font-weight: 700; 
+    font-size: 14px; cursor: pointer; transition: all 0.3s; 
+    display: flex; align-items: center; gap: 8px;
 }
+.btn-primary:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); 
+}
+
+/* ========================================================= */
+/* --- 3. Toggle Switch Styling (Modern) --- */
+/* ========================================================= */
+.toggle-switch-container { display: flex; align-items: center; gap: 10px; }
+.switch { position: relative; display: inline-block; width: 48px; height: 24px; } /* Ukuran disamakan dengan UI Pengaturan */
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { 
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+    background-color: #cbd5e1; /* Warna nonaktif modern */
+    transition: .4s; border-radius: 24px; 
+}
+.slider:before { 
+    position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; 
+    background-color: white; transition: .4s; border-radius: 50%; 
+}
+input:checked + .slider { 
+    background-color: #3b82f6; /* Warna aktif modern */
+}
+input:checked + .slider:before { 
+    transform: translateX(24px); /* Disesuaikan dengan ukuran baru */
+}
+
+/* ========================================================= */
+/* --- 4. Alerts & Responsive --- */
+/* ========================================================= */
+.alert {
+    padding: 15px; margin-bottom: 24px; border-radius: 12px; display: flex; 
+    align-items: flex-start; gap: 10px; font-weight: 500; 
+}
+.alert-success { color: #065f46; background-color: #d1fae5; border-color: #a7f3d0; }
+.alert-danger { color: #991b1b; background-color: #fee2e2; border-color: #fca5a5; }
+
 @media (max-width: 768px) {
     .form-grid { grid-template-columns: 1fr; }
-}
-
-/* Notifikasi */
-.alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 500;
-}
-.alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
 }
 </style>
 @endsection
 
 @section('content')
 
-<div class="card">
-    <h2 style="margin-top:0;"><i class="fas fa-wrench"></i> Pengaturan Lanjutan</h2>
-    <p style="color: #666; margin-bottom: 20px;">Atur parameter teknis dan operasional sistem.</p>
+<div class="page-header">
+    <h1 class="page-title">Pengaturan Lanjutan</h1>
+    <p class="page-subtitle">‎ </p>
 </div>
 
 @if (session('success'))
 <div class="alert alert-success">
-    <i class="fas fa-check-circle"></i> {{ session('success') }}
+    <i class="fas fa-check-circle" style="font-size: 20px;"></i> <div>{{ session('success') }}</div>
 </div>
 @endif
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i> 
+        <div>
+            <strong>Gagal menyimpan!</strong>
+            <ul style="margin: 5px 0 0 20px; padding: 0;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+@endif
 
-<div class="setting-card">
+<section class="card">
     <form action="{{ route('admin.advanced-settings.update') }}" method="POST">
         @csrf
-        @method('POST')
         
-        <h3><i class="fas fa-clock"></i> Pengaturan Antrian</h3>
+        <h3 class="card-title"><i class="fas fa-clock"></i> Pengaturan Antrian</h3>
         <div class="form-grid">
             <div class="form-group">
                 <label for="queue_timeout_minutes">Batas Waktu Panggilan (Menit)</label>
@@ -95,25 +172,25 @@ input:checked + .slider:before { transform: translateX(26px); }
             </div>
             <div class="form-group">
                 <label for="auto_cancel_timeout">Batalkan Otomatis</label>
-                <div class="toggle-switch">
+                <div class="toggle-switch-container">
                     <input type="hidden" name="auto_cancel_timeout" value="0">
                     <label class="switch">
                         <input type="checkbox" name="auto_cancel_timeout" value="1" id="auto_cancel_timeout" 
-                               {{ $setting->auto_cancel_timeout ? 'checked' : '' }}>
+                               {{ ($setting->auto_cancel_timeout ?? 0) ? 'checked' : '' }}>
                         <span class="slider"></span>
                     </label>
-                    <span id="toggleLabel">{{ $setting->auto_cancel_timeout ? 'Aktif' : 'Nonaktif' }}</span>
+                    <span id="toggleLabel" style="font-weight: 600; font-size: 13px; color: #475569;">...</span>
                 </div>
                 <small>Jika aktif, status antrian otomatis menjadi 'batal' setelah timeout.</small>
             </div>
         </div>
 
-        <h3 style="margin-top: 20px;"><i class="fas fa-tv"></i> Pengaturan Tampilan (Display)</h3>
+        <h3 class="card-title" style="margin-top: 30px;"><i class="fas fa-tv"></i> Pengaturan Tampilan (Display)</h3>
         <div class="form-grid">
             <div class="form-group">
                 <label for="theme_color">Warna Tema Utama</label>
                 <input type="color" name="theme_color" id="theme_color" 
-                       value="{{ $setting->theme_color ?? '#3498db' }}">
+                       value="{{ $setting->theme_color ?? '#3b82f6' }}">
                 <small>Warna utama untuk tombol dan header display.</small>
             </div>
             <div class="form-group">
@@ -124,7 +201,7 @@ input:checked + .slider:before { transform: translateX(26px); }
             </div>
         </div>
 
-        <h3 style="margin-top: 20px;"><i class="fas fa-calendar-alt"></i> Pengaturan Jam Kerja</h3>
+        <h3 class="card-title" style="margin-top: 30px;"><i class="fas fa-calendar-alt"></i> Pengaturan Jam Kerja</h3>
         <div class="form-grid">
             <div class="form-group">
                 <label for="working_hours_start">Jam Buka</label>
@@ -146,21 +223,34 @@ input:checked + .slider:before { transform: translateX(26px); }
             </button>
         </div>
     </form>
-</div>
+</section>
 @endsection
 
 @section('scripts')
 <script>
 // JavaScript untuk update label toggle
-document.getElementById('auto_cancel_timeout').addEventListener('change', function() {
-    const isChecked = this.checked;
-    document.getElementById('toggleLabel').textContent = isChecked ? 'Aktif' : 'Nonaktif';
-});
+const toggleCheckbox = document.getElementById('auto_cancel_timeout');
+const toggleLabel = document.getElementById('toggleLabel');
+
+function updateToggleLabel() {
+    const isChecked = toggleCheckbox.checked;
+    if (isChecked) {
+        toggleLabel.textContent = 'Aktif';
+        toggleLabel.style.color = '#3b82f6';
+    } else {
+        toggleLabel.textContent = 'Nonaktif';
+        toggleLabel.style.color = '#64748b';
+    }
+}
 
 // Panggil sekali saat halaman dimuat
 document.addEventListener('DOMContentLoaded', function() {
-    const isChecked = document.getElementById('auto_cancel_timeout').checked;
-    document.getElementById('toggleLabel').textContent = isChecked ? 'Aktif' : 'Nonaktif';
+    updateToggleLabel();
+});
+
+// Panggil saat nilainya berubah
+toggleCheckbox.addEventListener('change', function() {
+    updateToggleLabel();
 });
 </script>
 @endsection

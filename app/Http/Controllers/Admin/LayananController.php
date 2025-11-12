@@ -18,6 +18,14 @@ class LayananController extends Controller
     }
 
     /**
+     * [BARU] Menampilkan form untuk membuat layanan baru.
+     */
+    public function create()
+    {
+        return view('admin.layanan.create');
+    }
+
+    /**
      * Menyimpan layanan baru ke database.
      */
     public function store(Request $request)
@@ -38,12 +46,18 @@ class LayananController extends Controller
     }
 
     /**
+     * [BARU] Menampilkan form untuk mengedit layanan.
+     */
+    public function edit(Layanan $layanan) // Menggunakan Route Model Binding
+    {
+        return view('admin.layanan.edit', compact('layanan'));
+    }
+
+    /**
      * Memperbarui data layanan yang ada.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Layanan $layanan) // Menggunakan Route Model Binding
     {
-        $layanan = Layanan::findOrFail($id);
-        
         $request->validate([
             'nama_layanan' => 'required|string|max:255',
             'prefix' => 'required|string|max:5|unique:layanans,prefix,' . $layanan->id,
@@ -62,21 +76,17 @@ class LayananController extends Controller
     /**
      * Menghapus layanan dari database.
      */
-    public function destroy(string $id)
+    public function destroy(Layanan $layanan) // Menggunakan Route Model Binding
     {
         try {
-            $layanan = Layanan::findOrFail($id);
-            
-            // Cek jika layanan masih terpakai oleh loket
             if ($layanan->lokets()->count() > 0) {
                 return redirect()->route('admin.layanan.index')
                                  ->with('error', 'Layanan tidak dapat dihapus karena masih digunakan oleh loket.');
             }
             
-            // Cek jika layanan masih terpakai oleh antrian (opsional, tapi bagus)
             if ($layanan->antrians()->count() > 0) {
                  return redirect()->route('admin.layanan.index')
-                                 ->with('error', 'Layanan tidak dapat dihapus karena memiliki riwayat antrian.');
+                                  ->with('error', 'Layanan tidak dapat dihapus karena memiliki riwayat antrian.');
             }
 
             $layanan->delete();

@@ -3,148 +3,83 @@
 
 @section('styles')
 <style>
-/* Grup Form */
-.form-group {
-    margin-bottom: 1.25rem;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-}
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.2s;
-}
-.form-group input:focus,
-.form-group textarea:focus {
-    border-color: #3498db;
-    outline: none;
-}
-.form-group input[type="file"] {
-    padding: 0.5rem;
-    background: #fdfdfd;
-}
-.form-group small {
-    color: #999;
-    font-size: 0.8rem;
-    margin-top: 5px;
-    display: block;
-}
-
-/* Penampung preview */
-.preview-container {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border: 1px dashed #ddd;
-}
-.preview-logo { 
-    max-width: 200px; 
-    max-height: 150px;
-    margin: 0; 
-    border: 2px solid #e0e0e0; 
-    border-radius: 8px;
-    padding: 5px;
-    background: white;
-}
-.preview-info { flex: 1; }
-.preview-info p { margin: 5px 0; font-size: 13px; color: #666; }
-.preview-info strong { color: #2c3e50; }
-
-/* Placeholder jika tidak ada logo */
-.logo-placeholder {
-    background: #f8f9fa; 
-    padding: 20px; 
-    border-radius: 8px; 
-    text-align: center; 
-    color: #999; 
-    margin-bottom: 15px;
-    border: 1px dashed #ddd;
-}
-.logo-placeholder i {
-    font-size: 32px; 
-    margin-bottom: 10px;
-}
-/* Menyembunyikan placeholder text/icon saat preview JS aktif */
-.logo-placeholder.has-preview i,
-.logo-placeholder.has-preview p {
-    display: none;
-}
-
-/* Notifikasi */
-.alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid transparent;
-    border-radius: 4px;
+/* === CSS Modern (Diambil dari UI Anda) === */
+.card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 20px 0;
     display: flex;
     align-items: center;
     gap: 10px;
-    font-weight: 500;
 }
-.alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-group { margin-bottom: 0; }
+.form-group label { display: block; font-weight: 600; font-size: 12px; color: #475569; margin-bottom: 6px; }
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px; 
+    font-size: 14px; color: #1e293b; background: #ffffff; font-family: 'Inter', sans-serif; transition: all 0.3s;
 }
-.alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none; border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.form-group input[type="file"] {
+    padding: 8px; /* Sedikit penyesuaian untuk input file */
 }
 
-/* Tombol */
-.btn { 
-    padding: 12px 20px; 
-    border: none; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    font-weight: 600; 
-    font-size: 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
 .btn-primary { 
-    background: #3498db; 
-    color: white; 
-    width: 100%;
-    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; 
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    padding: 10px 16px; border: none; border-radius: 12px; font-weight: 700; 
+    font-size: 14px; cursor: pointer; transition: all 0.3s; 
+    display: flex; align-items: center; gap: 8px;
 }
-.btn-primary:hover { background: #2980b9; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); }
+
+/* Logo Preview (Dari UI Lama Anda, disesuaikan) */
+.preview-container { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; border: 1px dashed #ddd; }
+.preview-logo { max-width: 200px; max-height: 150px; margin: 0; border: 2px solid #e0e0e0; border-radius: 8px; padding: 5px; background: white; object-fit: contain; }
+.preview-info { flex: 1; }
+.preview-info p { margin: 5px 0; font-size: 13px; color: #666; }
+.preview-info strong { color: #2c3e50; }
+.logo-placeholder { background: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; color: #999; margin-bottom: 15px; border: 1px dashed #ddd; }
+.logo-placeholder i { font-size: 32px; margin-bottom: 10px; }
+.logo-placeholder.has-preview i, .logo-placeholder.has-preview p { display: none; }
+
+/* Alerts (Konsisten) */
+.alert { padding: 15px; margin-bottom: 24px; border-radius: 12px; display: flex; align-items: flex-start; gap: 10px; font-weight: 500; }
+.alert-success { color: #065f46; background-color: #d1fae5; border-color: #a7f3d0; }
+.alert-danger { color: #991b1b; background-color: #fee2e2; border-color: #fca5a5; }
 
 @media (max-width: 768px) {
-    .preview-container { flex-direction: column; align-items: flex-start; }
-    .preview-logo { max-width: 100%; }
+    .form-row { grid-template-columns: 1fr; }
+    .btn-primary { width: 100%; justify-content: center; }
+    .form-actions { flex-direction: column; }
 }
 </style>
 @endsection
 
 @section('content')
-<div class="card">
-    <h2 style="margin-top:0;"><i class="fas fa-cog"></i> Pengaturan Umum</h2>
-    <p style="color: #666; margin-bottom: 20px;">Kelola informasi dasar instansi Anda di sini</p>
-    
-    @if (session('success'))
+
+@if (session('success'))
     <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i> {{ session('success') }}
+        <i class="fas fa-check-circle" style="font-size: 20px;"></i> <div>{{ session('success') }}</div>
     </div>
-    @endif
-    
-    @if ($errors->any())
+@endif
+@if ($errors->any())
     <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i> 
+        <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i> 
         <div>
             <strong>Gagal menyimpan!</strong>
             <ul style="margin: 5px 0 0 20px; padding: 0;">
@@ -154,20 +89,27 @@
             </ul>
         </div>
     </div>
-    @endif
+@endif
 
+<section class="card" role="region">
+    <h3 class="card-title"><i class="fa-solid fa-sliders"></i> Pengaturan Umum Instansi</h3>
+    
     <form method="POST" action="{{ route('admin.pengaturan.update') }}" enctype="multipart/form-data">
         @csrf
         
-        <div class="form-group">
-            <label><i class="fas fa-image"></i> Logo Instansi</label>
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label for="logoInput"><i class="fas fa-image"></i> Logo Instansi</label>
             
             @if($pengaturan && $pengaturan->logo)
+            @php
+                $previewLogo = (str_starts_with($pengaturan->logo, 'http') || str_starts_with($pengaturan->logo, 'https'))
+                    ? $pengaturan->logo
+                    : asset('storage/' . $pengaturan->logo);
+            @endphp
             <div class="preview-container">
-                <img src="{{ asset('storage/' . $pengaturan->logo) }}" class="preview-logo" alt="Logo" id="logoPreview">
+                <img src="{{ $previewLogo }}" class="preview-logo" alt="Logo" id="logoPreview" style="object-fit: contain;">
                 <div class="preview-info">
-                    <p><strong>Logo Saat Ini:</strong></p>
-                    <p>{{ $pengaturan->logo }}</p>
+                    <p><strong>Logo Saat Ini.</strong> Pilih file baru di bawah untuk mengganti.</p>
                 </div>
             </div>
             @else
@@ -179,39 +121,42 @@
             @endif
             
             <input type="file" name="logo" accept="image/*" id="logoInput">
-            <small>Pilih file baru untuk mengganti logo. Maks 2MB.</small>
+            <small style="color: #64748b; font-size: 11px;">Pilih file baru untuk mengganti logo. Maks 2MB.</small>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="nama_instansi">Nama Instansi</label>
+                <input type="text" id="nama_instansi" name="nama_instansi" value="{{ old('nama_instansi', $pengaturan->nama_instansi ?? '') }}" required placeholder="Contoh: RSUD Sehat Sejahtera">
+            </div>
+            <div class="form-group">
+                <label for="telepon">Nomor Telepon</label>
+                <input type="text" id="telepon" name="telepon" value="{{ old('telepon', $pengaturan->telepon ?? '') }}" required placeholder="Contoh: (021) 12345678">
+            </div>
         </div>
         
-        <div class="form-group">
-            <label><i class="fas fa-hospital"></i> Nama Instansi</label>
-            <input type="text" name="nama_instansi" value="{{ old('nama_instansi', $pengaturan->nama_instansi ?? '') }}" required 
-                   placeholder="Contoh: RSUD Sehat Sejahtera">
+        <div class="form-row full">
+            <div class="form-group">
+                <label for="alamat">Alamat</label>
+                <textarea id="alamat" name="alamat" rows="3" required placeholder="Alamat lengkap instansi">{{ old('alamat', $pengaturan->alamat ?? '') }}</textarea>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label><i class="fas fa-map-marker-alt"></i> Alamat</label>
-            <textarea name="alamat" rows="3" required 
-                      placeholder="Alamat lengkap instansi">{{ old('alamat', $pengaturan->alamat ?? '') }}</textarea>
+
+        <div class="form-row full">
+            <div class="form-group">
+                <label for="deskripsi">Deskripsi (Opsional)</label>
+                <textarea id="deskripsi" name="deskripsi" rows="3" placeholder="Deskripsi singkat tentang instansi Anda">{{ old('deskripsi', $pengaturan->deskripsi ?? '') }}</textarea>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label><i class="fas fa-phone"></i> Nomor Telepon</label>
-            <input type="text" name="telepon" value="{{ old('telepon', $pengaturan->telepon ?? '') }}" required 
-                   placeholder="Contoh: (021) 12345678">
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btn-save-settings">
+                <i class="fa-solid fa-save"></i> Simpan Pengaturan
+            </button>
         </div>
-        
-        <div class="form-group">
-            <label><i class="fas fa-info-circle"></i> Deskripsi (Opsional)</label>
-            <textarea name="deskripsi" rows="3" 
-                      placeholder="Deskripsi singkat tentang instansi Anda">{{ old('deskripsi', $pengaturan->deskripsi ?? '') }}</textarea>
-            <small>Deskripsi ini akan ditampilkan di beberapa bagian aplikasi</small>
-        </div>
-        
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Simpan Pengaturan
-        </button>
     </form>
-</div>
+</section>
+
 @endsection
 
 @section('scripts')
@@ -231,18 +176,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 reader.onload = function(e) {
                     if (logoPreview) {
-                        // 1. Tampilkan gambar yang baru dipilih
                         logoPreview.src = e.target.result;
                         logoPreview.style.display = 'block';
                     }
                     
                     if (logoPlaceholder) {
-                        // 2. Sembunyikan icon dan text "Belum ada logo"
+                        // Sembunyikan icon dan text "Belum ada logo"
                         logoPlaceholder.classList.add('has-preview');
+                        // Pastikan placeholder (yang sekarang berisi preview) terlihat
+                        logoPlaceholder.style.display = 'flex'; 
                     }
                 };
                 
-                // 3. Baca file sebagai URL
                 reader.readAsDataURL(file);
             }
         });

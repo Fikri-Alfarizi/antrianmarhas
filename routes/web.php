@@ -98,6 +98,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/pusat-kontrol/data', [PusatKontrolController::class, 'getData'])->name('pusat-kontrol.data');
     Route::post('/pusat-kontrol/{loket}/panggil', [PusatKontrolController::class, 'panggil'])->name('pusat-kontrol.panggil');
     Route::post('/pusat-kontrol/{loket}/selesai', [PusatKontrolController::class, 'selesai'])->name('pusat-kontrol.selesai');
+    Route::post('/pusat-kontrol/{loket}/toggle-status', [PusatKontrolController::class, 'toggleStatus'])->name('pusat-kontrol.toggle-status');
+    Route::get('/pusat-kontrol/tracking/history', [PusatKontrolController::class, 'getTrackingHistory'])->name('pusat-kontrol.tracking-history');
+    Route::get('/pusat-kontrol/staff/list', [PusatKontrolController::class, 'getStaffList'])->name('pusat-kontrol.staff-list');
+    Route::post('/pusat-kontrol/message/send', [PusatKontrolController::class, 'sendMessage'])->name('pusat-kontrol.message-send');
+    Route::get('/pusat-kontrol/staff/activity', [PusatKontrolController::class, 'getStaffActivity'])->name('pusat-kontrol.staff-activity');
+    Route::get('/pusat-kontrol/messages/unread', [PusatKontrolController::class, 'getUnreadMessages'])->name('pusat-kontrol.unread-messages');
     
     // Aksi Tambahan Loket (Jika masih dibutuhkan)
     Route::post('loket/{loket}/toggle', [LoketController::class, 'toggleStatus'])->name('loket.toggle');
@@ -137,5 +143,41 @@ if (env('APP_DEBUG', false)) {
             $service = new \App\Services\BroadcastTestService();
             return response()->json($service->testBroadcast());
         })->name('broadcast.send');
+
+        // Debug: Show current pengaturan logo value (only in debug mode)
+        Route::get('/setting-logo', function () {
+            $s = \App\Models\Pengaturan::first();
+            return response()->json([ 
+                'logo' => $s?->logo, 
+                'nama_instansi' => $s?->nama_instansi,
+                'app_timezone' => config('app.timezone'),
+                'current_time' => now()->format('Y-m-d H:i:s T'),
+            ]);
+        })->name('test.setting-logo');
+
+        // Test Cloudinary credentials
+        Route::get('/cloudinary-test', function () {
+            return response()->json([
+                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                'api_key' => env('CLOUDINARY_API_KEY'),
+                'api_secret' => env('CLOUDINARY_API_SECRET') ? '***' : 'NOT SET',
+            ]);
+        })->name('test.cloudinary');
+
+        // Test Cloudinary connectivity
+        Route::get('/cloudinary-ping', function () {
+            try {
+                $response = \Illuminate\Support\Facades\Http::timeout(10)->get('https://api.cloudinary.com/v1_1/' . env('CLOUDINARY_CLOUD_NAME') . '/resource_types');
+                return response()->json([
+                    'status' => 'Connected',
+                    'response' => $response->json(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 'Failed',
+                    'error' => $e->getMessage(),
+                ], 500);
+            }
+        })->name('test.cloudinary-ping');
     });
 }
