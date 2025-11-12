@@ -10,34 +10,41 @@ use Carbon\Carbon;
 
 class AntrianController extends Controller
 {
+    /**
+     * Menampilkan daftar riwayat antrian dengan filter.
+     */
     public function index(Request $request)
     {
-        $query = Antrian::with(['layanan', 'loket']);
+        // Ambil data untuk filter dropdown
+        $layanans = Layanan::orderBy('nama_layanan', 'asc')->get();
+        $statuses = ['menunggu', 'dipanggil', 'dilayani', 'selesai', 'batal'];
 
-        // Filter berdasarkan layanan
-        if ($request->filled('layanan')) {
-            $query->where('layanan_id', $request->layanan);
+        // Mulai query
+        $query = Antrian::with(['layanan', 'loket'])
+                        ->orderBy('waktu_ambil', 'desc');
+
+        // Filter
+        $filters = [
+            // Default filter tanggal adalah HARI INI
+            'tanggal' => $request->input('tanggal', Carbon::today()->format('Y-m-d')),
+            'layanan_id' => $request->input('layanan_id'),
+            'status' => $request->input('status'),
+        ];
+
+        // Terapkan filter jika diisi
+        if ($filters['tanggal']) {
+            $query->whereDate('waktu_ambil', $filters['tanggal']);
+        }
+        if ($filters['layanan_id']) {
+            $query->where('layanan_id', $filters['layanan_id']);
+        }
+        if ($filters['status']) {
+            $query->where('status', $filters['status']);
         }
 
-        // Filter berdasarkan status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        // Ambil data dengan pagination (50 data per halaman)
+        $antrians = $query->paginate(50)->appends($filters);
 
-        // Filter berdasarkan tanggal
-        if ($request->filled('tanggal')) {
-            $query->whereDate('waktu_ambil', $request->tanggal);
-        } else {
-            // Default hari ini
-            $query->whereDate('waktu_ambil', Carbon::today());
-        }
-
-        $antrians = $query->latest('waktu_ambil')->paginate(20);
-        $layanans = Layanan::all();
-        
-        // Total antrian hari ini
-        $totalHariIni = Antrian::whereDate('waktu_ambil', Carbon::today())->count();
-
-        return view('admin.antrian.index', compact('antrians', 'layanans', 'totalHariIni'));
+        return view('admin.antrian.index', compact('antrians', 'layanans', 'statuses', 'filters'));
     }
 }

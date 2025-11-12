@@ -23,6 +23,7 @@ class ActivityLog extends Model
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'waktu' => 'datetime',
     ];
 
     public function user(): BelongsTo

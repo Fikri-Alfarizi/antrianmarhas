@@ -5,125 +5,89 @@ namespace App\Http\Controllers;
 use App\Models\Layanan;
 use App\Models\Antrian;
 use App\Models\Pengaturan;
-use App\Models\Loket;
-use App\Services\LogActivityService;
-use App\Services\WaitTimeService;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str; // Diperlukan untuk str_pad
 
 class KiosController extends Controller
 {
+    /**
+     * Menampilkan halaman kios.
+     */
     public function index()
     {
-        $layanans = Layanan::where('status', 'aktif')->get();
         $pengaturan = Pengaturan::first();
-        return view('kios.index', compact('layanans', 'pengaturan'));
+        // Hanya ambil layanan yang statusnya 'aktif'
+        $layanans = Layanan::where('status', 'aktif')->orderBy('nama_layanan', 'asc')->get();
+        
+        return view('kios.index', compact('pengaturan', 'layanans'));
     }
 
+    /**
+     * Membuat antrian baru (dipanggil via AJAX/Fetch).
+     */
     public function cetak(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'layanan_id' => 'required|exists:layanans,id',
-            ]);
+        $request->validate([
+            'layanan_id' => 'required|integer|exists:layanans,id',
+        ]);
 
-            $layanan = Layanan::findOrFail($validated['layanan_id']);
+        $layanan = Layanan::find($request->layanan_id);
 
-            // Cari nomor antrian terakhir hari ini
-            $lastAntrian = Antrian::where('layanan_id', $layanan->id)
-                ->whereDate('waktu_ambil', Carbon::today())
-                ->orderBy('id', 'desc')
-                ->first();
-
-            // Generate nomor antrian baru
-            if ($lastAntrian) {
-                $lastNumber = (int) substr($lastAntrian->kode_antrian, strlen($layanan->prefix));
-                $newNumber = $lastNumber + 1;
-            } else {
-                $newNumber = 1;
-            }
-
-            $kodeAntrian = $layanan->prefix . str_pad($newNumber, $layanan->digit, '0', STR_PAD_LEFT);
-
-            // Generate QR code link to status page (skip jika imagick tidak tersedia)
-            $qrCode = '';
-            try {
-                $statusUrl = route('status.index') . '?q=' . $kodeAntrian;
-                $qrCode = base64_encode(QrCode::format('png')->size(300)->generate($statusUrl));
-            } catch (\Exception $e) {
-                // Imagick tidak tersedia, skip QR generation
-                $qrCode = '';
-            }
-
-            // Simpan antrian
-            $antrian = Antrian::create([
-                'kode_antrian' => $kodeAntrian,
-                'layanan_id' => $layanan->id,
-                'status' => 'menunggu',
-                'waktu_ambil' => now(),
-            ]);
-
-            LogActivityService::antrianCreated($antrian);
-
-            $pengaturan = Pengaturan::first() ?? new Pengaturan();
-
+        // Cek sekali lagi jika layanan aktif (keamanan)
+        if ($layanan->status == 'nonaktif') {
             return response()->json([
-                'success' => true,
-                'antrian' => $antrian,
-                'layanan' => $layanan,
-                'pengaturan' => $pengaturan,
-                'qr_code' => $qrCode ? 'data:image/png;base64,' . $qrCode : '',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal: ' . json_encode($e->errors()),
-            ], 422);
-        } catch (\Exception $e) {
-            \Log::error('Kios cetak error: ' . $e->getMessage() . ' ' . $e->getFile() . ':' . $e->getLine());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+                'success' => false, 
+                'message' => 'Layanan ini sedang tidak aktif.'
+            ], 400);
         }
-    }
 
-    public function getWaitTimes()
-    {
-        try {
-            $layanans = Layanan::where('status', 'aktif')->get();
+        // --- Logika Pembuatan Nomor Antrian ---
+
+        // 1. Ambil antrian terakhir untuk layanan ini HARI INI
+        $lastAntrian = Antrian::where('layanan_id', $layanan->id)
+                            ->whereDate('waktu_ambil', Carbon::today())
+                            ->orderBy('id', 'desc')
+                            ->first();
+
+        $newNumber = 1;
+        if ($lastAntrian) {
+            // 2. Ekstrak nomor dari kode, cth: "A005" -> "005"
+            $lastNumberStr = preg_replace('/[^0-9]/', '', $lastAntrian->kode_antrian);
             
-            $waitTimes = $layanans->map(function($layanan) {
-                // Ambil semua loket yang melayani layanan ini
-                $lokets = Loket::where('layanan_id', $layanan->id)
-                    ->where('status', 'aktif')
-                    ->get();
-                
-                // Hitung rata-rata wait time dari semua loket
-                $totalWait = 0;
-                $loketCount = 0;
-                
-                foreach ($lokets as $loket) {
-                    $wait = WaitTimeService::getEstimatedWaitTime($loket);
-                    $totalWait += $wait;
-                    $loketCount++;
-                }
-                
-                $avgWait = $loketCount > 0 ? round($totalWait / $loketCount) : 0;
-                
-                return [
-                    'layanan_id' => $layanan->id,
-                    'nama_layanan' => $layanan->nama_layanan,
-                    'estimated_minutes' => $avgWait,
-                    'formatted' => WaitTimeService::formatWaitTime($avgWait),
-                ];
-            });
-            
-            return response()->json($waitTimes);
-        } catch (\Exception $e) {
-            \Log::error('Get wait times error: ' . $e->getMessage());
-            return response()->json([], 500);
+            if (is_numeric($lastNumberStr)) {
+                $newNumber = (int)$lastNumberStr + 1;
+            }
         }
+
+        // 3. Format nomor baru
+        $kodeAntrian = $layanan->prefix . str_pad($newNumber, $layanan->digit, '0', STR_PAD_LEFT);
+
+        // 4. Simpan ke database
+        $antrian = Antrian::create([
+            'layanan_id' => $layanan->id,
+            'kode_antrian' => $kodeAntrian,
+            'status' => 'menunggu',
+            'waktu_ambil' => now(),
+            // 'qr_code' -> Logika QR Code bisa ditambahkan di sini
+        ]);
+        
+        $pengaturan = Pengaturan::first();
+
+        // 5. Kembalikan data untuk dicetak
+        return response()->json([
+            'success' => true,
+            'antrian' => [
+                'kode_antrian' => $antrian->kode_antrian,
+                'nama_layanan' => $layanan->nama_layanan,
+                'waktu_ambil' => $antrian->waktu_ambil->format('d-m-Y H:i:s'),
+            ],
+            'instansi' => [
+                'nama' => $pengaturan->nama_instansi ?? 'Instansi Anda',
+                'alamat' => $pengaturan->alamat ?? '',
+                'telepon' => $pengaturan->telepon ?? '',
+                'logo' => $pengaturan->logo ? asset('storage/' . $pengaturan->logo) : null,
+            ]
+        ]);
     }
 }

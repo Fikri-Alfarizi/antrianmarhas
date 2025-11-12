@@ -8,17 +8,18 @@ use Illuminate\Http\Request;
 
 class LayananController extends Controller
 {
+    /**
+     * Menampilkan daftar semua layanan.
+     */
     public function index()
     {
-        $layanans = Layanan::latest()->get();
+        $layanans = Layanan::orderBy('nama_layanan', 'asc')->get();
         return view('admin.layanan.index', compact('layanans'));
     }
 
-    public function create()
-    {
-        return view('admin.layanan.create');
-    }
-
+    /**
+     * Menyimpan layanan baru ke database.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -26,49 +27,65 @@ class LayananController extends Controller
             'prefix' => 'required|string|max:5|unique:layanans,prefix',
             'digit' => 'required|integer|min:1|max:5',
             'status' => 'required|in:aktif,nonaktif',
+        ], [
+            'prefix.unique' => 'Prefix ini sudah digunakan. Harap gunakan huruf/kode lain.'
         ]);
 
         Layanan::create($request->all());
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Layanan berhasil ditambahkan'], 201);
-        }
-
-        return redirect()->route('admin.layanan.index')->with('success', 'Layanan berhasil ditambahkan');
+        return redirect()->route('admin.layanan.index')
+                         ->with('success', 'Layanan baru berhasil ditambahkan.');
     }
 
-    public function edit(Layanan $layanan)
+    /**
+     * Memperbarui data layanan yang ada.
+     */
+    public function update(Request $request, string $id)
     {
-        return view('admin.layanan.edit', compact('layanan'));
-    }
-
-    public function update(Request $request, Layanan $layanan)
-    {
+        $layanan = Layanan::findOrFail($id);
+        
         $request->validate([
             'nama_layanan' => 'required|string|max:255',
             'prefix' => 'required|string|max:5|unique:layanans,prefix,' . $layanan->id,
             'digit' => 'required|integer|min:1|max:5',
             'status' => 'required|in:aktif,nonaktif',
+        ], [
+            'prefix.unique' => 'Prefix ini sudah digunakan. Harap gunakan huruf/kode lain.'
         ]);
 
         $layanan->update($request->all());
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Layanan berhasil diperbarui']);
-        }
-
-        return redirect()->route('admin.layanan.index')->with('success', 'Layanan berhasil diperbarui');
+        return redirect()->route('admin.layanan.index')
+                         ->with('success', 'Layanan berhasil diperbarui.');
     }
 
-    public function destroy(Layanan $layanan)
+    /**
+     * Menghapus layanan dari database.
+     */
+    public function destroy(string $id)
     {
-        // Check if layanan has antrians
-        if ($layanan->antrians()->exists()) {
-            return redirect()->route('admin.layanan.index')->with('error', 'Tidak dapat menghapus layanan yang memiliki data antrian');
-        }
+        try {
+            $layanan = Layanan::findOrFail($id);
+            
+            // Cek jika layanan masih terpakai oleh loket
+            if ($layanan->lokets()->count() > 0) {
+                return redirect()->route('admin.layanan.index')
+                                 ->with('error', 'Layanan tidak dapat dihapus karena masih digunakan oleh loket.');
+            }
+            
+            // Cek jika layanan masih terpakai oleh antrian (opsional, tapi bagus)
+            if ($layanan->antrians()->count() > 0) {
+                 return redirect()->route('admin.layanan.index')
+                                 ->with('error', 'Layanan tidak dapat dihapus karena memiliki riwayat antrian.');
+            }
 
-        $layanan->delete();
-        
-        return redirect()->route('admin.layanan.index')->with('success', 'Layanan berhasil dihapus');
+            $layanan->delete();
+
+            return redirect()->route('admin.layanan.index')
+                             ->with('success', 'Layanan berhasil dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.layanan.index')
+                             ->with('error', 'Gagal menghapus layanan: ' . $e->getMessage());
+        }
     }
 }

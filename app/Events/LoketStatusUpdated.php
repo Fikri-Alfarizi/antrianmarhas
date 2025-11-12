@@ -4,25 +4,23 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Antrian;
+use App\Models\Loket;
 
-class AntrianDipanggil implements ShouldBroadcast
+class LoketStatusUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $antrian;
+    public $loket;
 
     /**
      * Buat instance event baru.
      */
-    public function __construct(Antrian $antrian)
+    public function __construct(Loket $loket)
     {
-        $this->antrian = $antrian;
+        $this->loket = $loket;
     }
 
     /**
@@ -30,7 +28,7 @@ class AntrianDipanggil implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        // Channel publik bernama 'antrian'
+        // Kita gunakan channel yang sama dengan antrian
         return [
             new Channel('antrian-channel'),
         ];
@@ -38,11 +36,10 @@ class AntrianDipanggil implements ShouldBroadcast
 
     /**
      * Nama event yang akan disiarkan.
-     * Ini HARUS 'antrian.dipanggil' agar sesuai dengan display.blade.php
      */
     public function broadcastAs(): string
     {
-        return 'antrian.dipanggil';
+        return 'loket.status.updated';
     }
 
     /**
@@ -51,12 +48,9 @@ class AntrianDipanggil implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'id' => $this->antrian->id,
-            'kode_antrian' => $this->antrian->kode_antrian,
-            'status' => $this->antrian->status,
-            'loket_id' => $this->antrian->loket_id,
-            'nama_loket' => $this->antrian->loket->nama_loket ?? 'N/A',
-            'layanan_id' => $this->antrian->layanan_id,
+            'loket_id' => $this->loket->id,
+            'status' => $this->loket->status,
+            'nama_loket' => $this->loket->nama_loket,
         ];
     }
 }

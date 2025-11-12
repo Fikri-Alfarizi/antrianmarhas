@@ -3,176 +3,358 @@
 
 @section('styles')
 <style>
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-.modal-content { background: white; max-width: 600px; width: 90%; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-header h3 { margin: 0; color: #2c3e50; }
-.close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; transition: color 0.2s; }
-.close-btn:hover { color: #2c3e50; }
-.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-.status-toggle { cursor: pointer; }
-.btn-sm { padding: 6px 12px; font-size: 12px; gap: 6px; }
-.btn-group { display: flex; gap: 8px; }
-@media (max-width: 768px) {
-    .header-actions { flex-direction: column; align-items: stretch; }
-    .header-actions .btn { width: 100%; }
-    .btn-group { flex-direction: column; }
-    .btn-group .btn { width: 100%; }
+/* CSS ini SAMA PERSIS dengan halaman Layanan untuk konsistensi */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 0.9em;
+    min-width: 400px;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.styled-table thead tr {
+    background-color: #2c3e50;
+    color: #ffffff;
+    text-align: left;
+}
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+.styled-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+}
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #2c3e50;
+}
+.styled-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+.btn { 
+    padding: 8px 12px; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-primary { background: #3498db; color: white; }
+.btn-primary:hover { background: #2980b9; }
+.btn-edit { background: #f39c12; color: white; }
+.btn-edit:hover { background: #e67e22; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-danger:hover { background: #c0392b; }
+.btn-secondary { background: #95a5a6; color: white; }
+.btn-secondary:hover { background: #7f8c8d; }
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status-aktif {
+    background-color: #eafaf1;
+    color: #27ae60;
+}
+.status-tutup {
+    background-color: #fdedeb;
+    color: #e74c3c;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s;
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+.close-btn {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-btn:hover,
+.close-btn:focus {
+    color: #333;
+}
+@keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
+@keyframes slideIn { from {transform: translateY(-50px)} to {transform: translateY(0)} }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
 }
 </style>
 @endsection
 
 @section('content')
-<div class="card">
-    <div class="header-actions">
-        <h2 style="margin: 0;"><i class="fas fa-door-open"></i> Manajemen Loket</h2>
-        <button onclick="showModal()" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Tambah Loket
-        </button>
+
+<div class="card" style="margin-bottom: 20px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="margin: 0;"><i class="fas fa-door-open"></i> Daftar Loket</h2>
+    <button class="btn btn-primary" onclick="openModal('createModal')">
+        <i class="fas fa-plus"></i> Tambah Loket Baru
+    </button>
+</div>
+
+@if (session('success'))
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> {{ session('success') }}
     </div>
-    
-    <table style="margin-top: 20px;">
+@endif
+@if (session('error'))
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i> {{ session('error') }}
+    </div>
+@endif
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i> 
+        <div>
+            <strong>Gagal memproses data!</strong>
+            <ul style="margin: 5px 0 0 20px; padding: 0;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+@endif
+
+<div class="card">
+    <table class="styled-table">
         <thead>
             <tr>
-                <th>No</th>
                 <th>Nama Loket</th>
-                <th>Layanan</th>
+                <th>Layanan yang Dilayani</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($lokets as $key => $loket)
+            @forelse($lokets as $loket)
             <tr>
-                <td>{{ $key + 1 }}</td>
                 <td><strong>{{ $loket->nama_loket }}</strong></td>
-                <td>{{ $loket->layanan->nama_layanan }}</td>
+                <td>{{ $loket->layanan->nama_layanan ?? 'N/A' }}</td>
                 <td>
-                    <span class="badge badge-{{ $loket->status === 'aktif' ? 'success' : 'danger' }} status-toggle" onclick="toggleStatus({{ $loket->id }})">
-                        <i class="fas fa-{{ $loket->status === 'aktif' ? 'check-circle' : 'times-circle' }}"></i> 
-                        {{ ucfirst($loket->status) }}
-                    </span>
+                    @if($loket->status == 'aktif')
+                        <span class="status-badge status-aktif">Aktif</span>
+                    @else
+                        <span class="status-badge status-tutup">Tutup</span>
+                    @endif
                 </td>
-                <td>
-                    <div class="btn-group">
-                        <button onclick="editLoket({{ $loket->id }}, '{{ addslashes($loket->nama_loket) }}', {{ $loket->layanan_id }}, '{{ $loket->status }}')" 
-                                class="btn btn-warning btn-sm">
-                            <i class="fas fa-edit"></i> Edit
+                <td class="action-buttons">
+                    <button class="btn btn-edit" onclick="openModal('editModal-{{ $loket->id }}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <form action="{{ route('admin.loket.destroy', $loket->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus loket ini?');" style="display:inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
                         </button>
-                        <form action="{{ route('admin.loket.destroy', $loket->id) }}" method="POST" style="display: inline;">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus loket ini?')">
-                                <i class="fas fa-trash"></i> Hapus
-                            </button>
-                        </form>
-                    </div>
+                    </form>
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="5" style="text-align: center; padding: 40px 20px;">
-                    <i class="fas fa-inbox" style="font-size: 40px; color: #ddd; margin-bottom: 10px; display: block;"></i>
-                    <p style="color: #999;">Belum ada data loket</p>
-                </td>
+                <td colspan="4" style="text-align: center; padding: 20px;">Belum ada data loket.</td>
             </tr>
             @endforelse
         </tbody>
     </table>
 </div>
 
-<div id="modal" class="modal">
+<div id="createModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 id="modalTitle"><i class="fas fa-plus"></i> Tambah Loket</h3>
-            <button onclick="hideModal()" class="close-btn" title="Tutup"><i class="fas fa-times"></i></button>
+            <h3><i class="fas fa-plus-circle"></i> Tambah Loket Baru</h3>
+            <span class="close-btn" onclick="closeModal('createModal')">&times;</span>
         </div>
-        <form id="formLoket" method="POST" action="{{ route('admin.loket.store') }}">
+        <form action="{{ route('admin.loket.store') }}" method="POST">
             @csrf
-            <input type="hidden" name="_method" id="formMethod" value="POST">
-            <input type="hidden" name="id" id="loket_id">
+            <div class="form-group">
+                <label for="nama_loket">Nama Loket</label>
+                <input type="text" id="nama_loket" name="nama_loket" placeholder="Contoh: Ruang 1 / Konter A" required>
+            </div>
             
             <div class="form-group">
-                <label><i class="fas fa-heading"></i> Nama Loket</label>
-                <input type="text" name="nama_loket" id="nama_loket" required autofocus placeholder="Contoh: Ruang 1, Loket A">
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-list-ul"></i> Layanan</label>
-                <select name="layanan_id" id="layanan_id" required>
-                    <option value="">-- Pilih Layanan --</option>
+                <label for="layanan_id">Layanan yang Dilayani</label>
+                <select id="layanan_id" name="layanan_id" required>
+                    <option value="" disabled selected>-- Pilih Layanan --</option>
                     @foreach($layanans as $layanan)
-                    <option value="{{ $layanan->id }}">{{ $layanan->nama_layanan }}</option>
+                        <option value="{{ $layanan->id }}">{{ $layanan->nama_layanan }}</option>
                     @endforeach
                 </select>
             </div>
+
             <div class="form-group">
-                <label><i class="fas fa-toggle-on"></i> Status</label>
-                <select name="status" id="status" required>
-                    <option value="aktif">Aktif</option>
+                <label for="status">Status Awal</label>
+                <select id="status" name="status" required>
+                    <option value="aktif" selected>Aktif</option>
                     <option value="tutup">Tutup</option>
                 </select>
             </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
-                <button type="button" onclick="hideModal()" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Batal
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Simpan
-                </button>
+            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Batal</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
             </div>
         </form>
     </div>
 </div>
+
+@foreach($lokets as $loket)
+<div id="editModal-{{ $loket->id }}" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Loket</h3>
+            <span class="close-btn" onclick="closeModal('editModal-{{ $loket->id }}')">&times;</span>
+        </div>
+        <form action="{{ route('admin.loket.update', $loket->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="form-group">
+                <label for="nama_loket-{{ $loket->id }}">Nama Loket</label>
+                <input type="text" id="nama_loket-{{ $loket->id }}" name="nama_loket" value="{{ $loket->nama_loket }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="layanan_id-{{ $loket->id }}">Layanan yang Dilayani</label>
+                <select id="layanan_id-{{ $loket->id }}" name="layanan_id" required>
+                    <option value="" disabled>-- Pilih Layanan --</option>
+                    @foreach($layanans as $layanan)
+                        <option value="{{ $layanan->id }}" {{ $layanan->id == $loket->layanan_id ? 'selected' : '' }}>
+                            {{ $layanan->nama_layanan }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="status-{{ $loket->id }}">Status</label>
+                <select id="status-{{ $loket->id }}" name="status" required>
+                    <option value="aktif" {{ $loket->status == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="tutup" {{ $loket->status == 'tutup' ? 'selected' : '' }}>Tutup</option>
+                </select>
+            </div>
+            <div class="action-buttons" style="margin-top: 20px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal-{{ $loket->id }}')">Batal</button>
+                <button type="submit" class"btn btn-primary"><i class="fas fa-save"></i> Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
+
 @endsection
 
 @section('scripts')
-function showModal() {
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Tambah Loket';
-    document.getElementById('formMethod').value = 'POST';
-    document.getElementById('formLoket').action = '{{ route("admin.loket.store") }}';
-    document.getElementById('formLoket').reset();
-    document.getElementById('modal').style.display = 'flex';
-    document.getElementById('nama_loket').focus();
+<script>
+// JavaScript ini SAMA PERSIS dengan halaman Layanan
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
 }
 
-function hideModal() {
-    document.getElementById('modal').style.display = 'none';
-}
-
-function editLoket(id, nama, layananId, status) {
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Loket';
-    document.getElementById('formMethod').value = 'PUT';
-    document.getElementById('formLoket').action = '/admin/loket/' + id;
-    document.getElementById('loket_id').value = id;
-    document.getElementById('nama_loket').value = nama;
-    document.getElementById('layanan_id').value = layananId;
-    document.getElementById('status').value = status;
-    document.getElementById('modal').style.display = 'flex';
-    document.getElementById('nama_loket').focus();
-}
-
-function toggleStatus(id) {
-    fetch(`/admin/loket/${id}/toggle`, {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Gagal mengubah status');
-        }
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        alert('Terjadi kesalahan');
-    });
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
 }
 
 window.onclick = function(event) {
-    const modal = document.getElementById('modal');
-    if (event.target == modal) {
-        hideModal();
+    const modals = document.getElementsByClassName('modal');
+    for (let i = 0; i < modals.length; i++) {
+        if (event.target == modals[i]) {
+            modals[i].style.display = "none";
+        }
     }
 }
+
+// Menangani error validasi dari Laravel
+@if ($errors->any())
+    @if (old('_method') === 'PUT')
+        @php
+            $errorId = null;
+            if (session()->has('_old_input')) {
+                $url = session()->get('_previous')['url'] ?? '';
+                preg_match('/\/(\d+)$/', $url, $matches);
+                if (isset($matches[1])) {
+                    $errorId = $matches[1];
+                }
+            }
+        @endphp
+        
+        @if ($errorId)
+            openModal('editModal-{{ $errorId }}');
+        @endif
+    @else
+        openModal('createModal');
+    @endif
+@endif
+</script>
 @endsection

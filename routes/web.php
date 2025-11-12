@@ -104,4 +104,5 @@ Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function
     Route::post('/loket/selesai', [LoketPetugasController::class, 'selesai'])->name('loket.selesai');
     Route::post('/loket/batalkan', [LoketPetugasController::class, 'batalkan'])->name('loket.batalkan');
     Route::post('/loket/tutup', [LoketPetugasController::class, 'tutupLoket'])->name('loket.tutup');
+    Route::get('/diagnostics', [\App\Http\Controllers\Petugas\DiagnosticController::class, 'diagnostics'])->name('diagnostics');
 });

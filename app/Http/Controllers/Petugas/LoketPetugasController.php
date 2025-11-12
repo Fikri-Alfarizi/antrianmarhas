@@ -3,231 +3,256 @@
 namespace App\Http\Controllers\Petugas;
 
 use App\Http\Controllers\Controller;
-use App\Models\Antrian;
-use App\Models\Loket;
-use App\Services\LogActivityService;
-use App\Services\StaffPerformanceService;
-use App\Events\AntrianDipanggil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Antrian;
+use App\Models\Loket;
 use Carbon\Carbon;
+use App\Events\AntrianDipanggil;
+use App\Events\LoketStatusUpdated;
+use App\Services\LogActivityService; // Pastikan service log Anda ada
 
 class LoketPetugasController extends Controller
 {
+    /**
+     * Menampilkan halaman utama loket petugas.
+     */
     public function index()
     {
         $user = Auth::user();
-        $loket = $user->loket;
-
-        if (!$loket) {
-            return redirect()->route('login')->with('error', 'Anda tidak memiliki loket yang ditugaskan');
+        if ($user->role != 'operator' || !$user->loket_id) {
+            // Jika bukan operator atau tidak punya loket, tendang
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Anda tidak ditugaskan di loket manapun.');
         }
 
-        $today = Carbon::today();
+        $loket = Loket::with('layanan')->find($user->loket_id);
         
-        // Statistik berdasarkan layanan (bukan loket)
-        // Karena antrian baru belum punya loket_id sampai dipanggil
-        $statistik = [
-            'total' => Antrian::where('layanan_id', $loket->layanan_id)
-                ->whereDate('waktu_ambil', $today)->count(),
-            'menunggu' => Antrian::where('layanan_id', $loket->layanan_id)
-                ->whereDate('waktu_ambil', $today)
-                ->where('status', 'menunggu')->count(),
-            'dipanggil' => Antrian::where('layanan_id', $loket->layanan_id)
-                ->whereDate('waktu_ambil', $today)
-                ->where('status', 'dipanggil')->count(),
-            'dilayani' => Antrian::where('layanan_id', $loket->layanan_id)
-                ->whereDate('waktu_ambil', $today)
-                ->where('status', 'dilayani')->count(),
-            'selesai' => Antrian::where('layanan_id', $loket->layanan_id)
-                ->whereDate('waktu_ambil', $today)
-                ->where('status', 'selesai')->count(),
-            'batal' => Antrian::where('layanan_id', $loket->layanan_id)
-                ->whereDate('waktu_ambil', $today)
-                ->where('status', 'batal')->count(),
-        ];
+        if (!$loket) {
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Loket tidak ditemukan.');
+        }
 
-        // Antrian yang sedang aktif untuk layanan ini
-        $antrianAktif = Antrian::where('layanan_id', $loket->layanan_id)
-            ->whereDate('waktu_ambil', $today)
-            ->whereIn('status', ['menunggu', 'dipanggil', 'dilayani'])
-            ->orderBy('waktu_ambil', 'asc')
-            ->get();
+        // Buka paksa loket jika statusnya 'tutup' saat operator login
+        if ($loket->status == 'tutup') {
+            $loket->status = 'aktif';
+            $loket->save();
+        }
 
-        // Performance stats
-        $personalStats = StaffPerformanceService::getPersonalStats($user);
-        $goalProgress = StaffPerformanceService::getGoalProgress($user);
-        $weeklyPerformance = StaffPerformanceService::getWeeklyPerformance($user);
-        $monthlyPerformance = StaffPerformanceService::getMonthlyPerformance($user);
-
-        return view('petugas.loket', compact('loket', 'statistik', 'antrianAktif', 'personalStats', 'goalProgress', 'weeklyPerformance', 'monthlyPerformance'));
+        return view('petugas.loket', compact('loket'));
     }
 
     /**
-     * Get antrian list untuk ajax display
+     * API Internal (AJAX) untuk refresh data loket
      */
-    public function getAntrianList()
+    public function getAntrianList(Request $request)
     {
         $user = Auth::user();
         $loket = $user->loket;
-
+        
+        if (!$loket || !$loket->layanan_id) {
+            return response()->json([
+                'error' => 'Loket tidak ditemukan atau tidak memiliki layanan yang ditugaskan',
+                'current' => null,
+                'waiting' => [],
+                'history' => [],
+                'stats' => ['total' => 0, 'selesai' => 0, 'batal' => 0, 'menunggu_total' => 0],
+                'loket_status' => null,
+            ], 400);
+        }
+        
         $today = Carbon::today();
 
-        // Antrian menunggu dan dipanggil
-        $antrians = Antrian::where('layanan_id', $loket->layanan_id)
+        // 1. Antrian saat ini (yang sedang dipanggil / dilayani)
+        $current = Antrian::where('loket_id', $loket->id)
+            ->whereIn('status', ['dipanggil', 'dilayani'])
             ->whereDate('waktu_ambil', $today)
-            ->whereIn('status', ['menunggu', 'dipanggil', 'dilayani'])
             ->with('layanan')
-            ->orderBy('waktu_ambil', 'asc')
-            ->get();
-
-        // Antrian terakhir yang dipanggil
-        $lastCalled = Antrian::where('loket_id', $loket->id)
-            ->whereDate('waktu_ambil', $today)
-            ->where('status', 'dipanggil')
-            ->orderBy('waktu_panggil', 'desc')
             ->first();
 
+        // 2. Daftar Antrian Menunggu (milik layanan loket ini)
+        $waiting = Antrian::where('layanan_id', $loket->layanan_id)
+            ->where('status', 'menunggu')
+            ->whereDate('waktu_ambil', $today)
+            ->orderBy('waktu_ambil', 'asc')
+            ->limit(10)
+            ->with('layanan')
+            ->get();
+
+        // 3. Daftar Riwayat Selesai/Batal (di loket ini)
+        $history = Antrian::where('loket_id', $loket->id)
+            ->whereIn('status', ['selesai', 'batal'])
+            ->whereDate('waktu_ambil', $today)
+            ->orderBy('waktu_selesai', 'desc')
+            ->limit(10)
+            ->with('layanan')
+            ->get();
+
+        // 4. Statistik Loket Hari Ini
+        $stats = [
+            'total' => Antrian::where('loket_id', $loket->id)->whereDate('waktu_ambil', $today)->count(),
+            'selesai' => Antrian::where('loket_id', $loket->id)->where('status', 'selesai')->whereDate('waktu_ambil', $today)->count(),
+            'batal' => Antrian::where('loket_id', $loket->id)->where('status', 'batal')->whereDate('waktu_ambil', $today)->count(),
+            'menunggu_total' => Antrian::where('layanan_id', $loket->layanan_id)->where('status', 'menunggu')->whereDate('waktu_ambil', $today)->count(),
+        ];
+        
+        // 5. Status Loket terbaru
+        $loketStatus = $loket->fresh()->status; // Ambil status terbaru dari DB
+
         return response()->json([
-            'success' => true,
-            'antrians' => $antrians,
-            'last_called' => $lastCalled,
+            'current' => $current,
+            'waiting' => $waiting,
+            'history' => $history,
+            'stats' => $stats,
+            'loket_status' => $loketStatus,
         ]);
     }
 
     /**
-     * Panggil antrian berikutnya
+     * Aksi: Panggil Antrian Berikutnya
      */
     public function panggil(Request $request)
     {
         $user = Auth::user();
         $loket = $user->loket;
+        $today = Carbon::today();
 
-        if (!$loket) {
-            return response()->json(['success' => false, 'message' => 'Loket tidak ditemukan']);
+        // 1. Cek apakah loket sedang melayani
+        $sedangDilayani = Antrian::where('loket_id', $loket->id)
+            ->whereIn('status', ['dipanggil', 'dilayani'])
+            ->whereDate('waktu_ambil', $today)
+            ->exists();
+            
+        if ($sedangDilayani) {
+            return response()->json(['success' => false, 'message' => 'Selesaikan antrian saat ini terlebih dahulu.']);
         }
 
-        // Ambil antrian pertama yang menunggu
+        // 2. Ambil antrian menunggu berikutnya untuk layanan ini
         $antrian = Antrian::where('layanan_id', $loket->layanan_id)
             ->where('status', 'menunggu')
-            ->whereDate('waktu_ambil', Carbon::today())
+            ->whereDate('waktu_ambil', $today)
             ->orderBy('waktu_ambil', 'asc')
             ->first();
 
         if (!$antrian) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada antrian untuk dipanggil']);
+            return response()->json(['success' => false, 'message' => 'Tidak ada antrian menunggu.']);
         }
 
+        // 3. Update antrian
         $antrian->update([
             'status' => 'dipanggil',
-            'loket_id' => $loket->id,
             'waktu_panggil' => now(),
+            'loket_id' => $loket->id,
         ]);
+        
+        LogActivityService::log("Memanggil antrian {$antrian->kode_antrian}");
 
-        LogActivityService::antrianCalled($antrian);
+        // 4. Broadcast event ke Display
+        broadcast(new AntrianDipanggil($antrian->load('loket')))->toOthers();
 
-        // Broadcast event ke semua display
-        broadcast(new AntrianDipanggil(
-            $antrian,
-            $loket->nama_loket,
-            $loket->layanan->nama_layanan ?? 'Loket'
-        ))->toOthers();
-
-        return response()->json(['success' => true, 'antrian' => $antrian]);
+        return response()->json(['success' => true, 'message' => 'Antrian ' . $antrian->kode_antrian . ' dipanggil.']);
     }
 
     /**
-     * Layani antrian yang sedang dipanggil
+     * Aksi: Layani (Menandakan pasien sudah di loket)
      */
     public function layani(Request $request)
     {
         $user = Auth::user();
-        $loket = $user->loket;
-
-        // Ambil antrian yang sedang dipanggil di loket ini
-        $antrian = Antrian::where('loket_id', $loket->id)
-            ->where('status', 'dipanggil')
-            ->whereDate('waktu_ambil', Carbon::today())
-            ->first();
+        $antrian = Antrian::where('loket_id', $user->loket_id)
+                         ->where('status', 'dipanggil')
+                         ->whereDate('waktu_ambil', Carbon::today())
+                         ->first();
 
         if (!$antrian) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada antrian yang dipanggil']);
+            return response()->json(['success' => false, 'message' => 'Tidak ada antrian yang sedang dipanggil.']);
         }
-        
+
         $antrian->update([
             'status' => 'dilayani',
-            'waktu_mulai_dilayani' => now(),
+            'waktu_mulai_dilayani' => now(), // (Asumsi kolom ini ada dari migrasi)
         ]);
 
-        LogActivityService::antrianServed($antrian);
-
-        return response()->json(['success' => true, 'antrian' => $antrian]);
+        LogActivityService::log("Mulai melayani antrian {$antrian->kode_antrian}");
+        
+        // Broadcast lagi untuk update status di display (misal jadi hijau)
+        broadcast(new AntrianDipanggil($antrian->load('loket')))->toOthers();
+        
+        return response()->json(['success' => true]);
     }
 
     /**
-     * Selesaikan pelayanan antrian
+     * Aksi: Selesai
      */
     public function selesai(Request $request)
     {
         $user = Auth::user();
-        $loket = $user->loket;
-
-        // Ambil antrian yang sedang dilayani di loket ini
-        $antrian = Antrian::where('loket_id', $loket->id)
-            ->where('status', 'dilayani')
-            ->whereDate('waktu_ambil', Carbon::today())
-            ->first();
+        $antrian = Antrian::where('loket_id', $user->loket_id)
+                         ->whereIn('status', ['dipanggil', 'dilayani'])
+                         ->whereDate('waktu_ambil', Carbon::today())
+                         ->first();
 
         if (!$antrian) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada antrian yang sedang dilayani']);
+            return response()->json(['success' => false, 'message' => 'Tidak ada antrian yang sedang dilayani.']);
         }
-        
+
         $antrian->update([
             'status' => 'selesai',
             'waktu_selesai' => now(),
         ]);
 
-        LogActivityService::antrianCompleted($antrian);
+        LogActivityService::log("Menyelesaikan antrian {$antrian->kode_antrian}");
 
-        return response()->json(['success' => true, 'antrian' => $antrian]);
+        // Broadcast untuk membersihkan display dari antrian ini
+        broadcast(new AntrianDipanggil($antrian->load('loket')))->toOthers();
+
+        return response()->json(['success' => true]);
     }
 
     /**
-     * Batalkan antrian yang sedang dipanggil
+     * Aksi: Batalkan
      */
     public function batalkan(Request $request)
     {
         $user = Auth::user();
-        $loket = $user->loket;
-
-        // Ambil antrian yang sedang dipanggil di loket ini
-        $antrian = Antrian::where('loket_id', $loket->id)
-            ->where('status', 'dipanggil')
-            ->whereDate('waktu_ambil', Carbon::today())
-            ->first();
+        $antrian = Antrian::where('loket_id', $user->loket_id)
+                         ->whereIn('status', ['dipanggil', 'dilayani'])
+                         ->whereDate('waktu_ambil', Carbon::today())
+                         ->first();
 
         if (!$antrian) {
-            return response()->json(['success' => false, 'message' => 'Tidak ada antrian yang dipanggil']);
+            return response()->json(['success' => false, 'message' => 'Tidak ada antrian yang sedang dilayani.']);
         }
-        
+
         $antrian->update([
             'status' => 'batal',
+            'waktu_selesai' => now(), // Waktu selesai tetap dicatat
         ]);
 
-        LogActivityService::antrianCancelled($antrian);
+        LogActivityService::log("Membatalkan antrian {$antrian->kode_antrian}");
 
-        return response()->json(['success' => true, 'antrian' => $antrian]);
+        // Broadcast untuk membersihkan display
+        broadcast(new AntrianDipanggil($antrian->load('loket')))->toOthers();
+
+        return response()->json(['success' => true]);
     }
-
+    
+    /**
+     * Aksi: Buka/Tutup Loket
+     */
     public function tutupLoket(Request $request)
     {
         $user = Auth::user();
         $loket = $user->loket;
 
-        $loket->update([
-            'status' => $loket->status === 'aktif' ? 'tutup' : 'aktif',
-        ]);
+        $newStatus = ($loket->status == 'aktif') ? 'tutup' : 'aktif';
+        $loket->update(['status' => $newStatus]);
+        
+        LogActivityService::log("Mengubah status loket menjadi {$newStatus}");
 
-        return response()->json(['success' => true, 'status' => $loket->status]);
+        // Broadcast status loket ke display
+        broadcast(new LoketStatusUpdated($loket))->toOthers();
+
+        return response()->json(['success' => true, 'new_status' => $newStatus]);
     }
 }

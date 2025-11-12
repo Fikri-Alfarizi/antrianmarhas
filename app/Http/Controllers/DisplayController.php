@@ -6,61 +6,67 @@ use App\Models\Antrian;
 use App\Models\Loket;
 use App\Models\Pengaturan;
 use App\Models\AudioSetting;
-use App\Services\AudioService;
-use App\Services\WaitTimeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DisplayController extends Controller
 {
+    /**
+     * Menampilkan halaman utama display.
+     */
     public function index()
     {
-        $lokets = Loket::with('layanan')->where('status', 'aktif')->get();
         $pengaturan = Pengaturan::first();
-        $audioSetting = AudioSetting::first() ?? new AudioSetting();
-        return view('display.index', compact('lokets', 'pengaturan', 'audioSetting'));
+        // Ambil pengaturan audio, atau buat default jika tidak ada
+        $audioSetting = AudioSetting::firstOrCreate(
+            ['id' => 1],
+            ['format_pesan' => 'Nomor {nomor} silakan menuju ke {lokasi}', 'volume' => 80]
+        );
+        
+        return view('display.index', compact('pengaturan', 'audioSetting'));
     }
 
-    public function getData()
+    /**
+     * API Internal (JSON) untuk mengambil data loket dan antrian terbaru.
+     * Ini digunakan untuk polling fallback jika WebSocket gagal.
+     */
+    public function getData(Request $request)
     {
         try {
-            $lokets = Loket::with(['layanan', 'antrians' => function($query) {
-                $query->whereDate('waktu_ambil', Carbon::today())
-                      ->whereIn('status', ['dipanggil', 'dilayani', 'menunggu'])
-                      ->latest('waktu_panggil');
-            }])->get();
+            $today = Carbon::today();
 
-            $data = $lokets->map(function($loket) {
-                $antrianDipanggil = $loket->antrians->where('status', 'dipanggil')->first();
-                $antrianDilayani = $loket->antrians->where('status', 'dilayani')->first();
-                
-                // Tentukan antrian yang ditampilkan (dipanggil prioritas)
-                $displayAntrian = $antrianDipanggil ?? $antrianDilayani;
-                
+            // 1. Ambil semua loket yang tidak di-nonaktifkan
+            $lokets = Loket::with('layanan')
+                           ->orderBy('nama_loket', 'asc')
+                           ->get(); // Ambil semua, termasuk yang 'tutup'
+
+            // 2. Ambil semua antrian yang sedang aktif HARI INI
+            $activeAntrians = Antrian::whereIn('status', ['dipanggil', 'dilayani'])
+                                    ->whereDate('waktu_ambil', $today)
+                                    ->get()
+                                    ->keyBy('loket_id'); // Jadikan loket_id sebagai key
+
+            // 3. Gabungkan data
+            $data = $lokets->map(function ($loket) use ($activeAntrians) {
+                // Cek apakah ada antrian aktif untuk loket ini
+                $currentAntrian = $activeAntrians->get($loket->id);
+
                 return [
                     'id' => $loket->id,
                     'nama_loket' => $loket->nama_loket,
-                    'layanan' => $loket->layanan ? $loket->layanan->nama_layanan : 'N/A',
-                    'status' => $loket->status ?? 'aktif',
-                    'antrian' => $displayAntrian ? [
-                        'id' => $displayAntrian->id,
-                        'kode_antrian' => $displayAntrian->kode_antrian,
-                        'status' => $displayAntrian->status,
-                    ] : null,
+                    'layanan' => $loket->layanan->nama_layanan ?? 'N/A',
+                    'status' => $loket->status, // 'aktif' atau 'tutup'
+                    'antrian' => $currentAntrian ? [
+                        'kode_antrian' => $currentAntrian->kode_antrian,
+                        'status' => $currentAntrian->status, // 'dipanggil' atau 'dilayani'
+                    ] : null, // null jika tidak ada antrian
                 ];
             });
 
-            return response()->json([
-                'success' => true,
-                'lokets' => $data,
-            ]);
+            return response()->json(['success' => true, 'lokets' => $data]);
+
         } catch (\Exception $e) {
-            \Log::error('Display getData error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'lokets' => [],
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }
