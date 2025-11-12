@@ -1,11 +1,11 @@
 # AntrianMarhas — Queue Management System
 
-Sistem antrian digital modern dengan real-time display, audio announcements, operator dashboard, dan pusat kontrol terpusat. Built with Laravel 11, Pusher, Web Speech API, dan Vite.
+Sistem antrian digital modern dengan real-time display, audio announcements, operator dashboard, dan pusat kontrol terpusat. Built with Laravel 12, Pusher, Web Speech API, dan Vite.
 
 ## 📋 Quick Start
 
 ### Prerequisites
-- PHP 8.1+
+- PHP 8.4+
 - Composer
 - Node.js & npm
 - MySQL 5.7+
