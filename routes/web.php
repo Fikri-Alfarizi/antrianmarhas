@@ -98,6 +98,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/pusat-kontrol/data', [PusatKontrolController::class, 'getData'])->name('pusat-kontrol.data');
     Route::post('/pusat-kontrol/{loket}/panggil', [PusatKontrolController::class, 'panggil'])->name('pusat-kontrol.panggil');
     Route::post('/pusat-kontrol/{loket}/selesai', [PusatKontrolController::class, 'selesai'])->name('pusat-kontrol.selesai');
+    Route::post('/pusat-kontrol/{loket}/toggle-status', [PusatKontrolController::class, 'toggleStatus'])->name('pusat-kontrol.toggle-status');
+    Route::post('/pusat-kontrol/message-send', [PusatKontrolController::class, 'messageSend'])->name('pusat-kontrol.message-send');
+    Route::get('/pusat-kontrol/tracking-history', [PusatKontrolController::class, 'trackingHistory'])->name('pusat-kontrol.tracking-history');
+    Route::get('/pusat-kontrol/staff-list', [PusatKontrolController::class, 'staffList'])->name('pusat-kontrol.staff-list');
+    Route::get('/pusat-kontrol/staff-activity', [PusatKontrolController::class, 'staffActivity'])->name('pusat-kontrol.staff-activity');
+    Route::get('/pusat-kontrol/{loket}/waiting-queue', [PusatKontrolController::class, 'waitingQueue'])->name('pusat-kontrol.waiting-queue');
     
     // Aksi Tambahan Loket (Jika masih dibutuhkan)
     Route::post('loket/{loket}/toggle', [LoketController::class, 'toggleStatus'])->name('loket.toggle');
@@ -137,5 +143,21 @@ if (env('APP_DEBUG', false)) {
             $service = new \App\Services\BroadcastTestService();
             return response()->json($service->testBroadcast());
         })->name('broadcast.send');
+        
+        // Debug logo upload
+        Route::get('/logo-debug', function () {
+            $pengaturan = \App\Models\Pengaturan::first();
+            $logFile = storage_path('logs/laravel.log');
+            $logs = file_exists($logFile) ? array_slice(explode("\n", file_get_contents($logFile)), -20) : [];
+            
+            return response()->json([
+                'pengaturan' => $pengaturan,
+                'logo_url' => $pengaturan ? $pengaturan->logo : null,
+                'storage_path' => asset('storage/logos/'),
+                'recent_logs' => $logs,
+                'symlink_exists' => is_link('public/storage'),
+                'public_storage_exists' => is_dir('public/storage')
+            ]);
+        })->name('logo-debug');
     });
 }

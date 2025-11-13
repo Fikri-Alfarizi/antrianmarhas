@@ -1,14 +1,14 @@
 # AntrianMarhas — Queue Management System
 
-Sistem antrian digital modern dengan real-time display, audio announcements, operator dashboard, dan pusat kontrol terpusat. Built with Laravel 11, Pusher, Web Speech API, dan Vite.
+Sistem antrian digital modern dengan real-time display, audio announcements, operator dashboard, dan pusat kontrol terpusat. Built with Laravel 12, Pusher, Web Speech API, dan Vite.
 
 ## 📋 Quick Start
 
 ### Prerequisites
-- PHP 8.1+
+- PHP 8.4+
 - Composer
 - Node.js & npm
-- MySQL 5.7+
+- MySQL
 
 ### Installation
 
@@ -28,14 +28,29 @@ npm run build
 php artisan config:clear
 php artisan cache:clear
 
-# Run migrations
-php artisan migrate
+# Setup storage symlink
+php artisan storage:link
+
+# Run migrations & seeding
+php artisan migrate:fresh --seed
 
 # Start server
 php artisan serve
 ```
 
 Open: http://localhost:8000
+
+---
+
+## ✨ Latest Updates (v4.1)
+
+### Recent Improvements
+- ✅ **Audio System Enhanced** - User interaction handler untuk browser policy compliance
+- ✅ **Vite Bootstrap Fixed** - `resources/js/bootstrap.js` ditambahkan ke manifest
+- ✅ **Logo Management** - ImgBB integration dengan local fallback
+- ✅ **Audio Settings Seeder** - AudioSettingSeeder untuk default configuration
+- ✅ **Database Reset Command** - `php artisan db:reset-keep-settings` untuk preserve settings
+- ✅ **Message Format Updated** - Format pesan antrian: "Nomor antrian {nomor} silakan menuju ke {lokasi}"
 
 ---
 
@@ -164,17 +179,26 @@ When operator clicks **PANGGIL ANTRIAN**:
    - Detects queue status change (WebSocket or polling)
    - Plays beep notification (Web Audio)
    - Speaks announcement (Web Speech → Google TTS fallback)
+   - User interaction is required first (browser policy compliance)
+
+### Browser Audio Policy
+
+Modern browsers require user interaction (click/touch) before playing audio. The system:
+- ✅ Detects first user click/touch on display page
+- ✅ Automatically enables audio playback
+- ✅ Queues audio if needed before interaction
+- ✅ Handles retry logic for Google TTS
 
 ### Message Format
 
 Template with placeholders (admin configurable):
 ```
-"Nomor {nomor} silakan menuju ke {lokasi}"
+"Nomor antrian {nomor} silakan menuju ke {lokasi}"
 ```
 
 Example output:
 ```
-"Nomor A 001 silakan menuju ke Loket 1"
+"Nomor antrian C 001 silakan menuju ke Ruang 3"
 ```
 
 ### Languages Supported
@@ -192,6 +216,7 @@ Example output:
 1. Try Web Speech API (browser native) → If supported, use it
 2. If Web Speech error → Fallback to Google Translate TTS
 3. Volume & language read from `audio_settings` DB table
+4. All audio requires user interaction (browser policy)
 
 ---
 
@@ -298,14 +323,52 @@ php artisan migrate --force
 
 2. **Hard refresh display page** (Ctrl+Shift+R)
 
-3. **Check browser console** (F12):
+3. **Click or touch the display page** - Browser requires user interaction to play audio
+
+4. **Check browser console** (F12):
    - Look for `[AUDIO]` messages
+   - Check for `User interaction detected - audio playback enabled`
    - Check for any `[ERROR]` logs
 
-4. **Browser audio settings:**
+5. **Browser audio settings:**
    - Ensure browser not muted
    - Check system volume
    - Test with `/test/audio` page
+
+### Logo Not Showing
+
+1. **Check storage symlink:**
+   ```bash
+   php artisan storage:link
+   ```
+
+2. **Verify logo file exists:**
+   ```bash
+   ls storage/app/public/logos/
+   ```
+
+3. **Update logo in admin panel** and re-upload if needed
+
+4. **Check database:**
+   ```bash
+   php artisan tinker
+   > DB::table('settings')->where('id', 1)->first()
+   # Check logo field has valid path
+   ```
+
+### Database Reset Without Losing Settings
+
+Use the new command to reset data but preserve Pengaturan (logo) and Audio Settings:
+
+```bash
+php artisan db:reset-keep-settings
+```
+
+This command:
+- ✅ Backs up Pengaturan and AudioSettings
+- ✅ Runs migrate:fresh
+- ✅ Restores settings
+- ✅ Runs all other seeders
 
 ### WebSocket Connection Fails
 
@@ -324,6 +387,16 @@ php artisan migrate --force
 - Hard refresh display page after admin changes
 - Clear browser cache (Ctrl+Shift+Delete)
 - Run `php artisan config:clear`
+- Click the display page to enable audio playback
+
+### Vite Manifest Error
+
+If you get "Unable to locate file in Vite manifest":
+```bash
+# Ensure bootstrap.js is in vite.config.js input
+npm run build
+php artisan config:clear
+```
 
 ---
 
@@ -409,9 +482,15 @@ npm run format
 php artisan config:clear
 php artisan cache:clear
 
-# Database
+# Database - Fresh seed with settings preserved
+php artisan db:reset-keep-settings
+
+# Database - Regular operations
 php artisan migrate
 php artisan db:seed
+
+# Storage
+php artisan storage:link
 
 # Tinker console
 php artisan tinker
@@ -447,6 +526,6 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Last Updated**: November 2025
-**Version**: 4.0 (Projek 200jt)
+**Last Updated**: November 13, 2025
+**Version**: 4.1 (Projek 200jt - Latest Updates)
 **Project Name**: antrianmarhas

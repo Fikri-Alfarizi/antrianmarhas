@@ -3,130 +3,203 @@
 
 @section('styles')
 <style>
-/* Filter Card */
+/* --- Page Header & Card Base (Konsisten dengan UI Modern) --- */
+.page-header { margin-bottom: 32px; }
+.page-title { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; }
+.page-subtitle { font-size: 14px; color: #64748b; margin: 0; font-weight: 500; }
+
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    transition: all 0.2s;
+    margin-bottom: 24px;
+}
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Filter Card --- */
 .filter-card {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 24px; /* Konsisten dengan .card */
 }
 .filter-form {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    gap: 16px; /* Konsisten */
     align-items: flex-end;
 }
 .form-group { margin: 0; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; }
-.form-group input, .form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+.form-group label { 
+    display: block; 
+    margin-bottom: 6px; 
+    font-weight: 600; 
+    font-size: 12px; /* Konsisten */
+    color: #475569;
 }
+.form-group input, 
+.form-group select {
+    width: 100%;
+    padding: 10px 14px; /* Konsisten */
+    border: 1px solid #e2e8f0; /* Konsisten */
+    border-radius: 10px; /* Konsisten */
+    font-size: 14px;
+    background: #ffffff;
+    font-family: 'Inter', sans-serif;
+}
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3b82f6; 
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* --- Tombol Filter & Reset (Gaya Konsisten) --- */
 .btn { 
     padding: 10px 15px; 
     border: none; 
-    border-radius: 4px; 
+    border-radius: 12px; /* Konsisten */
     cursor: pointer; 
-    font-weight: 600; 
+    font-weight: 700; 
     font-size: 14px;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    height: 40px; /* Samakan tinggi dengan input */
+    gap: 8px;
+    height: 44px; /* Samakan tinggi dengan input */
+    transition: all 0.2s;
 }
-.btn-primary { background: #3498db; color: white; }
-.btn-primary:hover { background: #2980b9; }
-.btn-secondary { background: #95a5a6; color: white; text-decoration: none; }
-.btn-secondary:hover { background: #7f8c8d; }
+.btn-primary { 
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+    color: white; 
+}
+.btn-primary:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+.btn-secondary { 
+    background: #e2e8f0; 
+    color: #475569; 
+    text-decoration: none; 
+}
+.btn-secondary:hover { 
+    background: #cbd5e1; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
 
-/* Tabel */
+/* --- Table Styles (Diadaptasi dari Dashboard) --- */
+.table-wrapper {
+    overflow-x: auto;
+}
 .styled-table {
     width: 100%;
     border-collapse: collapse;
     margin: 0;
     font-size: 0.9em;
-    min-width: 400px;
-    border-radius: 8px 8px 0 0;
+    min-width: 800px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
 }
 .styled-table thead tr {
-    background-color: #2c3e50;
-    color: #ffffff;
+    background-color: #f8fafc;
+    color: #64748b;
     text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 .styled-table th,
 .styled-table td {
     padding: 12px 15px;
-}
-.styled-table tbody tr {
-    border-bottom: 1px solid #f0f0f0;
-    background: #fff;
-}
-.styled-table tbody tr:last-of-type {
-    border-bottom: 2px solid #2c3e50;
+    border-bottom: 1px solid #e2e8f0;
 }
 .styled-table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: #f8fafc;
+}
+.styled-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
-/* Status Badges */
+/* --- Status Badges (Gaya Modern) --- */
 .status-badge {
     padding: 5px 10px;
-    border-radius: 15px;
+    border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
+    text-transform: capitalize; /* Diubah dari uppercase agar lebih enak dilihat */
 }
-.status-menunggu { background-color: #fdf2e9; color: #f39c12; }
-.status-dipanggil { background-color: #eaf2f8; color: #3498db; }
-.status-dilayani { background-color: #eafaf1; color: #27ae60; }
-.status-selesai { background-color: #ecf0f1; color: #7f8c8d; }
-.status-batal { background-color: #fdedeb; color: #e74c3c; }
+.status-menunggu { background-color: #fef3c7; color: #b45309; }
+.status-dipanggil { background-color: #dbeafe; color: #2563eb; }
+.status-dilayani { background-color: #dcfce7; color: #166534; }
+.status-selesai { background-color: #f1f5f9; color: #64748b; }
+.status-batal { background-color: #fee2e2; color: #ef4444; }
 
-/* Pagination */
-.pagination {
-    margin-top: 20px;
+/* --- Pagination (Gaya Modern) --- */
+.pagination-wrapper nav {
     display: flex;
+    justify-content: flex-end;
+    padding: 15px 0 5px 0;
+}
+.pagination-wrapper nav svg {
+    height: 18px;
+    width: 18px;
+}
+.pagination-wrapper nav > div:first-child {
+    display: none; /* Sembunyikan info "Showing 1 to 10..." */
+}
+.pagination-wrapper nav > div:last-child {
+    display: flex;
+    gap: 5px;
+}
+.pagination-wrapper span, 
+.pagination-wrapper a {
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    list-style: none;
-    padding: 0;
-}
-.pagination li {
-    margin: 0 3px;
-}
-.pagination li a, .pagination li span {
-    display: block;
-    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    transition: all 0.2s;
     text-decoration: none;
-    color: #3498db;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: 0.2s;
 }
-.pagination li a:hover {
-    background: #f4f4f4;
+.pagination-wrapper a:hover {
+    background: #f1f5f9;
 }
-.pagination li.active span {
-    background: #3498db;
+.pagination-wrapper span.current {
+    background: #3b82f6;
     color: white;
-    border-color: #3498db;
+    border-color: #3b82f6;
+    font-weight: 600;
 }
-.pagination li.disabled span {
-    color: #999;
-    background: #f9f9f9;
+.pagination-wrapper span.disabled {
+    color: #cbd5e1;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .card { padding: 15px; }
+    .table-wrapper {
+        overflow-x: auto;
+    }
+    .styled-table {
+        min-width: 700px; /* Minimal width untuk mobile scroll */
+    }
 }
 </style>
 @endsection
 
 @section('content')
 
-<div class="filter-card">
+<div class="page-header">
+    <h1 class="page-title">Daftar Riwayat Antrian</h1>
+    <p class="page-subtitle">‎ </p>
+</div>
+
+<div class="card filter-card">
     <form action="{{ route('admin.antrian.index') }}" method="GET" class="filter-form">
         <div class="form-group">
             <label for="tanggal"><i class="fas fa-calendar-alt"></i> Filter Tanggal</label>
@@ -138,7 +211,7 @@
             <select id="layanan_id" name="layanan_id">
                 <option value="">-- Semua Layanan --</option>
                 @foreach($layanans as $layanan)
-                    <option value="{{ $layanan->id }}" {{ $filters['layanan_id'] == $layanan->id ? 'selected' : '' }}>
+                    <option value="{{ $layanan->id }}" {{ ($filters['layanan_id'] ?? null) == $layanan->id ? 'selected' : '' }}>
                         {{ $layanan->nama_layanan }}
                     </option>
                 @endforeach
@@ -150,7 +223,7 @@
             <select id="status" name="status">
                 <option value="">-- Semua Status --</option>
                 @foreach($statuses as $status)
-                    <option value="{{ $status }}" {{ $filters['status'] == $status ? 'selected' : '' }}>
+                    <option value="{{ $status }}" {{ ($filters['status'] ?? null) == $status ? 'selected' : '' }}>
                         {{ ucfirst($status) }}
                     </option>
                 @endforeach
@@ -158,7 +231,7 @@
         </div>
         
         <div class="form-group">
-            <label>&nbsp;</label> <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px;">
                 <button type="submit" class="btn btn-primary" style="flex: 1;">
                     <i class="fas fa-filter"></i> Filter
                 </button>
@@ -170,45 +243,48 @@
     </form>
 </div>
 
-<div class="card">
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>Kode</th>
-                <th>Layanan</th>
-                <th>Loket</th>
-                <th>Waktu Ambil</th>
-                <th>Waktu Panggil</th>
-                <th>Waktu Selesai</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($antrians as $antrian)
-            <tr>
-                <td><strong>{{ $antrian->kode_antrian }}</strong></td>
-                <td>{{ $antrian->layanan->nama_layanan ?? 'N/A' }}</td>
-                <td>{{ $antrian->loket->nama_loket ?? 'N/A' }}</td>
-                <td>{{ $antrian->waktu_ambil->format('d-m-Y H:i:s') }}</td>
-                <td>{{ $antrian->waktu_panggil ? $antrian->waktu_panggil->format('H:i:s') : 'N/A' }}</td>
-                <td>{{ $antrian->waktu_selesai ? $antrian->waktu_selesai->format('H:i:s') : 'N/A' }}</td>
-                <td>
-                    <span class="status-badge status-{{ $antrian->status }}">
-                        {{ $antrian->status }}
-                    </span>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 20px;">
-                    Tidak ada data antrian untuk filter yang dipilih.
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+<div class="card" style="padding: 0;">
+    <div class="table-wrapper">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Kode</th>
+                    <th>Layanan</th>
+                    <th>Loket</th>
+                    <th>Waktu Ambil</th>
+                    <th>Waktu Panggil</th>
+                    <th>Waktu Selesai</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($antrians as $antrian)
+                <tr>
+                    <td><strong>{{ $antrian->kode_antrian }}</strong></td>
+                    <td>{{ $antrian->layanan->nama_layanan ?? 'N/A' }}</td>
+                    <td>{{ $antrian->loket->nama_loket ?? 'N/A' }}</td>
+                    <td>{{ $antrian->waktu_ambil->format('d-m-Y H:i:s') }}</td>
+                    <td>{{ $antrian->waktu_panggil ? $antrian->waktu_panggil->format('H:i:s') : 'N/A' }}</td>
+                    <td>{{ $antrian->waktu_selesai ? $antrian->waktu_selesai->format('H:i:s') : 'N/A' }}</td>
+                    <td>
+                        <span class="status-badge status-{{ $antrian->status }}">
+                            {{ ucfirst($antrian->status) }}
+                        </span>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">
+                        <i class="fa-regular fa-folder-open" style="font-size: 32px; margin-bottom: 10px; display: block; color: #cbd5e1;"></i>
+                        Tidak ada data antrian untuk filter yang dipilih.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
     
-    <div style="padding-top: 20px;">
+    <div class="pagination-wrapper" style="padding: 0 15px;">
         {{ $antrians->links() }}
     </div>
 </div>

@@ -20,7 +20,13 @@ class DisplayController extends Controller
         // Ambil pengaturan audio, atau buat default jika tidak ada
         $audioSetting = AudioSetting::firstOrCreate(
             ['id' => 1],
-            ['format_pesan' => 'Nomor {nomor} silakan menuju ke {lokasi}', 'volume' => 80]
+            [
+                'format_pesan' => 'Nomor antrian {nomor} silakan menuju ke {lokasi}',
+                'volume' => 80,
+                'aktif' => true,
+                'tipe' => 'text-to-speech',
+                'bahasa' => 'id',
+            ]
         );
         
         return view('display.index', compact('pengaturan', 'audioSetting'));

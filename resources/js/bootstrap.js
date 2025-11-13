@@ -5,19 +5,24 @@ import Pusher from 'pusher-js';
 window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-// Configure Pusher
+// Configure Pusher only if needed
 window.Pusher = Pusher;
 window.Pusher.logToConsole = false;
 
-// Setup Laravel Echo
-window.Echo = new Echo({
-    broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    wsHost: import.meta.env.VITE_PUSHER_HOST || window.location.hostname,
-    wsPort: import.meta.env.VITE_PUSHER_PORT || 6001,
-    wssPort: import.meta.env.VITE_PUSHER_PORT || 6001,
-    forceTLS: import.meta.env.VITE_PUSHER_SCHEME === 'https',
-    disableStats: true,
-    enabledTransports: ['ws', 'wss'],
-});
+// Setup Laravel Echo - with fallback for non-pusher broadcasters
+try {
+    window.Echo = new Echo({
+        broadcaster: 'pusher',
+        key: import.meta.env.VITE_PUSHER_APP_KEY,
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+        wsHost: import.meta.env.VITE_PUSHER_HOST || window.location.hostname,
+        wsPort: import.meta.env.VITE_PUSHER_PORT || 6001,
+        wssPort: import.meta.env.VITE_PUSHER_PORT || 6001,
+        forceTLS: import.meta.env.VITE_PUSHER_SCHEME === 'https',
+        disableStats: true,
+        enabledTransports: ['ws', 'wss'],
+    });
+} catch (error) {
+    console.warn('Echo/Pusher initialization failed, using polling fallback:', error);
+    window.Echo = null;
+}
