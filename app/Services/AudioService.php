@@ -27,15 +27,16 @@ class AudioService
     }
 
     /**
-     * Generate URL TTS menggunakan Google Translate atau service lain
+     * Generate URL TTS menggunakan Google Translate - FORCE INDONESIAN ONLY
      */
     public static function generateTTSUrl(string $text, string $bahasa = 'id')
     {
-        // Menggunakan Google Text-to-Speech API atau free service
+        // FORCE: Hanya gunakan bahasa Indonesia ('id')
+        // Menggunakan Google Text-to-Speech API
         // Format: https://translate.google.com/translate_tts?ie=UTF-8&q={text}&tl={lang}
         
         $text = urlencode($text);
-        return "https://translate.google.com/translate_tts?ie=UTF-8&q={$text}&tl={$bahasa}&client=tw-ob";
+        return "https://translate.google.com/translate_tts?ie=UTF-8&q={$text}&tl=id&client=tw-ob";
     }
 
     /**
@@ -50,7 +51,8 @@ class AudioService
         }
 
         $audioText = self::generateAudioText($antrian);
-        $audioUrl = self::generateTTSUrl($audioText, $setting->bahasa);
+        // FORCE: Hanya gunakan 'id' untuk bahasa Indonesia
+        $audioUrl = self::generateTTSUrl($audioText, 'id');
         $volume = ($setting->volume / 100); // convert 0-100 to 0-1
 
         return <<<HTML

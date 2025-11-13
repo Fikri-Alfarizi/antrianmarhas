@@ -178,10 +178,7 @@
             <h2>🧪 Test Web Speech API</h2>
             <input type="text" id="testText" placeholder="Text untuk dibaca" value="Nomor antrian A satu satu lima, dimohon menuju loket satu">
             <select id="language" style="margin-bottom: 10px;">
-                <option value="id-ID">🇮🇩 Bahasa Indonesia</option>
-                <option value="en-US">🇺🇸 English (USA)</option>
-                <option value="en-GB">🇬🇧 English (UK)</option>
-                <option value="es-ES">🇪🇸 Español</option>
+                <option value="id-ID" selected>🇮🇩 Bahasa Indonesia (Only)</option>
             </select>
             <button onclick="testWebSpeech()">🗣️ Test Web Speech</button>
         </div>
