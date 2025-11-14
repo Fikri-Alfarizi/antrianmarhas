@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('queue_timeout_minutes')->default(30); // Timeout antrian dalam menit
             $table->boolean('auto_cancel_timeout')->default(true); // Auto cancel jika timeout
             // Display settings
-            $table->string('theme_color')->default('#3498db'); // Primary color
+            $table->string('theme_color')->default('#026e4aff'); // Primary color
             $table->string('secondary_color')->default('#2c3e50'); // Secondary color
             $table->integer('display_refresh_seconds')->default(5); // Refresh rate display
             // Notification settings

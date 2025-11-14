@@ -42,15 +42,19 @@ Open: http://localhost:8000
 
 ---
 
-## ✨ Latest Updates (v4.1)
 
-### Recent Improvements
-- ✅ **Audio System Enhanced** - User interaction handler untuk browser policy compliance
-- ✅ **Vite Bootstrap Fixed** - `resources/js/bootstrap.js` ditambahkan ke manifest
-- ✅ **Logo Management** - ImgBB integration dengan local fallback
-- ✅ **Audio Settings Seeder** - AudioSettingSeeder untuk default configuration
-- ✅ **Database Reset Command** - `php artisan db:reset-keep-settings` untuk preserve settings
-- ✅ **Message Format Updated** - Format pesan antrian: "Nomor antrian {nomor} silakan menuju ke {lokasi}"
+## ✨ Latest Updates (v4.2)
+
+### November 2025 — Major UI & Branding Update
+- 🎨 **Dynamic Theme Color** — Semua warna utama (sidebar, tombol, card, login) mengikuti theme color dari pengaturan instansi
+- 🏫 **Branding & Logo Dinamis** — Logo dan nama instansi di seluruh aplikasi diambil dari database, bisa diubah dari admin
+- 🖼️ **Logo Upload UI Premium** — Halaman pengaturan instansi kini lebih modern, drag & drop, preview logo besar, dan responsif
+- 🔊 **Audio Settings Real-time** — Pengaturan audio (format, volume, bahasa) bisa diubah dari admin dan langsung update ke display
+- 🟢 **Real-time Pusat Kontrol** — Halaman pemanggilan antrian admin kini real-time, update status, antrian, dan chat tanpa reload
+- 🧑‍💻 **Seeder & Migration Konsisten** — Semua seeder (SMK Marhas Margahayu) dan migration sudah update, tidak error di fresh install
+- 🛡️ **Bugfix & UX Polishing** — Perbaikan error, validasi upload logo, dan tampilan mobile lebih baik
+
+---
 
 ---
 

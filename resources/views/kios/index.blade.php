@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/logo.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/logo.png') }}">
 <title>Antrian Modern - {{ $pengaturan->nama_instansi ?? 'Rumah Sakit' }}</title>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
@@ -121,6 +123,53 @@
         padding: 40px;
         overflow: hidden;
         position: relative;
+    }
+    
+    /* Printer Selection Box - Baru */
+    .printer-selection {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(229, 231, 235, 0.5);
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 200px;
+    }
+    
+    .printer-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .printer-select {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+        background: white;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .printer-select:hover {
+        border-color: #9ca3af;
+    }
+    
+    .printer-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     .welcome-section {
@@ -259,7 +308,7 @@
     }
     /* Menggunakan warna yang sama untuk semua card layanan dari database */
     .service-icon.default { 
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        background: linear-gradient(135deg, {{ $themeColor ?? '#3b82f6' }} 0%, {{ $themeColor ?? '#60a5fa' }} 100%);
         color: white;
     }
 
@@ -440,6 +489,13 @@
         }
         .modal-number { font-size: 56px; }
         .modal-service { font-size: 20px; }
+        
+        /* Responsive untuk printer selection */
+        .printer-selection {
+            position: static;
+            margin-bottom: 20px;
+            width: 100%;
+        }
     }
 
     @media (max-height: 800px) {
@@ -454,7 +510,7 @@
     <header class="header">
         <div class="logo-container">
             @if(isset($pengaturan->logo) && $pengaturan->logo)
-                <img src="{{ $pengaturan->logo }}" alt="Logo" class="logo-image">
+                <img src="{{ asset('logo/' . $pengaturan->logo) }}" alt="Logo" class="logo-image">
             @else
                 <i class="fa-solid fa-hospital logo"></i>
             @endif
@@ -470,6 +526,17 @@
     </header>
 
     <main class="main-content">
+        <!-- Printer Selection Box - Dipindahkan ke sini -->
+        <div class="printer-selection">
+            <label class="printer-label">
+                <i class="fa-solid fa-print"></i>
+                Pilih Printer:
+            </label>
+            <select id="printerSelect" class="printer-select">
+                <option value="">Mendeteksi printer...</option>
+            </select>
+        </div>
+        
         <div class="welcome-section">
             <h2 class="welcome-title">Selamat Datang</h2>
             <p class="welcome-subtitle" id="welcomeSubtitle">Silakan pilih layanan untuk mengambil nomor antrian</p>
@@ -612,10 +679,10 @@
      */
     async function handleCetak(layananId) {
         setLoading(true);
-        
         const targetCard = document.querySelector(`.service-card[onclick*="handleCetak(${layananId})"]`);
         const serviceName = targetCard ? targetCard.getAttribute('data-service') : 'Layanan Tidak Dikenal';
-        
+        const printerSelect = document.getElementById('printerSelect');
+        const selectedPrinter = printerSelect ? printerSelect.value : '';
         try {
             const response = await fetch(URL_CETAK, {
                 method: 'POST',
@@ -625,44 +692,195 @@
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    layanan_id: layananId
+                    layanan_id: layananId,
+                    printer: selectedPrinter
                 })
             });
-
             const data = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.message || 'Gagal mengambil nomor antrian.');
             }
-
+            console.log('[KIOS] Respons dari server:', data);
             if (data.success) {
                 // 1. Isi data ke Modal
                 modalService.textContent = data.antrian.nama_layanan || serviceName;
                 modalNumber.textContent = data.antrian.kode_antrian;
-                
                 // 2. Tampilkan Modal
                 modalOverlay.classList.add('show');
                 welcomeSubtitle.textContent = 'Antrian Anda Berhasil Diambil'; // Ganti subtitle header
                 playSuccessSound(); // Mainkan suara
 
-                // Opsional: Otomatis tutup modal setelah 10 detik
-                // setTimeout(() => {
-                //   modalOverlay.classList.remove('show');
-                //   welcomeSubtitle.textContent = 'Silakan pilih layanan untuk mengambil nomor antrian';
-                // }, 10000); 
-                
+                // 3. Print Otomatis (window.print() demo, ganti dengan bridge jika perlu direct print)
+                setTimeout(() => {
+                    printStruk(data);
+                }, 500);
+                // Fungsi print struk otomatis (bisa diubah ke bridge/ekstensi jika perlu direct print)
+                function printStruk(data) {
+                    // Validasi data sebelum print
+                    if (!data || !data.antrian || !data.instansi) {
+                        console.error('Data struk tidak lengkap:', data);
+                        alert('Terjadi kesalahan: Data struk tidak lengkap');
+                        return;
+                    }
+
+                    const namaInstansi = data.instansi.nama || 'Instansi Anda';
+                    const alamatInstansi = data.instansi.alamat || '';
+                    const teleponInstansi = data.instansi.telepon || '';
+                    const kodeAntrian = data.antrian.kode_antrian || 'N/A';
+                    const namaLayanan = data.antrian.nama_layanan || 'Layanan Umum';
+                    const waktuAmbil = data.antrian.waktu_ambil || new Date().toLocaleString('id-ID');
+
+                    // Buat window baru untuk print
+                    const printWindow = window.open('', '', 'width=350,height=500');
+                    
+                    if (!printWindow) {
+                        alert('Popup blocked! Silakan izinkan popup di browser Anda.');
+                        return;
+                    }
+
+                    printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html lang="id">
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>Cetak Struk - ${kodeAntrian}</title>
+                            <style>
+                                * { margin: 0; padding: 0; box-sizing: border-box; }
+                                body { 
+                                    font-family: 'Courier New', monospace; 
+                                    font-size: 13px; 
+                                    padding: 16px; 
+                                    background: #f9fafb;
+                                }
+                                .struk-container {
+                                    background: white;
+                                    width: 80mm;
+                                    margin: 0 auto;
+                                    padding: 12px;
+                                    border: 1px solid #e5e7eb;
+                                    border-radius: 4px;
+                                }
+                                .struk-header {
+                                    text-align: center;
+                                    margin-bottom: 12px;
+                                    border-bottom: 1px dashed #d1d5db;
+                                    padding-bottom: 8px;
+                                }
+                                .struk-title { 
+                                    font-size: 15px; 
+                                    font-weight: bold; 
+                                    margin-bottom: 4px; 
+                                }
+                                .struk-subtitle { 
+                                    font-size: 11px;
+                                    color: #6b7280;
+                                    line-height: 1.4;
+                                    margin-bottom: 4px;
+                                }
+                                .struk-telepon {
+                                    font-size: 10px;
+                                    color: #9ca3af;
+                                }
+                                .struk-body {
+                                    text-align: center;
+                                    margin: 16px 0;
+                                    border-bottom: 1px dashed #d1d5db;
+                                    padding-bottom: 12px;
+                                }
+                                .struk-antrian { 
+                                    font-size: 48px; 
+                                    font-weight: bold;
+                                    color: #2563eb;
+                                    margin: 12px 0;
+                                    letter-spacing: 2px;
+                                }
+                                .struk-layanan {
+                                    font-size: 14px;
+                                    font-weight: bold;
+                                    color: #111827;
+                                    margin-bottom: 8px;
+                                }
+                                .struk-waktu {
+                                    font-size: 11px;
+                                    color: #6b7280;
+                                }
+                                .struk-footer {
+                                    text-align: center;
+                                    font-size: 11px;
+                                    color: #9ca3af;
+                                    margin-top: 12px;
+                                    line-height: 1.4;
+                                }
+                                @media print {
+                                    body { background: white; padding: 0; }
+                                    .struk-container { border: none; width: 100%; }
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="struk-container">
+                                <div class="struk-header">
+                                    <div class="struk-title">${namaInstansi}</div>
+                                    <div class="struk-subtitle">${alamatInstansi}</div>
+                                    ${teleponInstansi ? `<div class="struk-telepon">Telp: ${teleponInstansi}</div>` : ''}
+                                </div>
+                                
+                                <div class="struk-body">
+                                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">NOMOR ANTRIAN</div>
+                                    <div class="struk-antrian">${kodeAntrian}</div>
+                                    <div class="struk-layanan">${namaLayanan}</div>
+                                    <div class="struk-waktu">${waktuAmbil}</div>
+                                </div>
+                                
+                                <div class="struk-footer">
+                                    <strong>Terima kasih</strong><br>
+                                    Silakan menunggu nomor Anda dipanggil<br>
+                                    di monitor tampilan ruangan
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    
+                    // Tunggu sampai konten ter-load
+                    setTimeout(() => {
+                        printWindow.focus();
+                        printWindow.print();
+                        
+                        // Tutup window setelah print
+                        setTimeout(() => {
+                            printWindow.close();
+                        }, 100);
+                    }, 250);
+                }
             } else {
                 alert('Error: ' + data.message);
             }
-
         } catch (error) {
             console.error('Error:', error);
             alert('Terjadi kesalahan: ' + error.message);
         } finally {
-            // Sembunyikan loading spinner
             setLoading(false); 
         }
     }
+    
+    // --- Printer Detection & Dropdown ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dummy printer list for demo, replace with real detection if pakai ekstensi/bridge
+        const printers = [
+            { name: 'Printer Thermal 58mm', value: 'thermal58' },
+            { name: 'Printer Laser A4', value: 'laserA4' }
+        ];
+        const select = document.getElementById('printerSelect');
+        select.innerHTML = '';
+        printers.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.value;
+            opt.textContent = p.name;
+            select.appendChild(opt);
+        });
+    });
 </script>
 </body>
 </html>

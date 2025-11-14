@@ -20,7 +20,7 @@ class AudioSettingSeeder extends Seeder
                 'bahasa' => 'id',
                 'volume' => 80,
                 'aktif' => true,
-                'format_pesan' => 'Nomor antrian {nomor} silakan menuju ke {lokasi}',
+                'format_pesan' => 'Nomor antrian {nomor} silakan menuju ke {lokasi} di SMK Marhas Margahayu',
                 'voice_url' => null,
             ]
         );

@@ -389,11 +389,14 @@
             }
         }
 
+        // Ambil refresh rate dari backend (detik), default 3 jika tidak ada
+        const refreshRate = Number({{ isset($pengaturan->refresh_rate_display) ? $pengaturan->refresh_rate_display : 3 }}) || 3;
+
         // Initial load
         loadAntrianData();
 
-        // Auto refresh setiap 3 detik
-        updateInterval = setInterval(loadAntrianData, 3000);
+        // Auto refresh sesuai pengaturan
+        updateInterval = setInterval(loadAntrianData, refreshRate * 1000);
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {

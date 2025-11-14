@@ -17,11 +17,11 @@ class SettingSeeder extends Seeder
         Pengaturan::firstOrCreate(
             ['id' => 1],
             [
-                'logo' => 'storage/logos/logo-1762967705.png', // Default logo lokal
-                'nama_instansi' => 'RSUD Marhas Medika',
-                'alamat' => 'Jl. Kesehatan No. 123, Jakarta Selatan',
-                'telepon' => '021-12345678',
-                'deskripsi' => 'Rumah Sakit Umum Daerah yang melayani dengan sepenuh hati'
+                'logo' => 'SMKMarhas.png', // Default logo di public/logo/SMKMarhas.png
+                'nama_instansi' => 'SMK Marhas Margahayu',
+                'alamat' => 'Jl. Terusan Kopo No.385/299 ',
+                'telepon' => '(022) 5410926',
+                'deskripsi' => 'Sekolah SMK Pusat Keunggulan'
             ]
         );
     }

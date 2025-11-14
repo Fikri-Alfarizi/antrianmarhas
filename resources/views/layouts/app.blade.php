@@ -4,11 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Ruang Coding Antrian Admin | @yield('title')</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/logo.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('img/logo.png') }}">
+    <link rel="icon" href="{{ asset('img/logo.png') }}">
+    <title>Antrian Marhas Admin | @yield('title')</title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
+    @php
+        $themeColor = optional(\App\Models\AdvancedSetting::first())->theme_color ?? '#3b82f6';
+    @endphp
     <style>
+        :root {
+            --theme-color: {{ $themeColor }};
+        }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         /* RESET DAN BASE */
@@ -102,13 +112,13 @@
         }
 
         .nav-list a:hover {
-            background: #f1f5f9;
-            color: #0f172a;
+            background: var(--theme-color, #3b82f6);
+            color: #fff;
         }
 
         .nav-list a.active {
-            background: #3b82f6;
-            color: white;
+            background: var(--theme-color, #3b82f6);
+            color: #fff;
             font-weight: 600;
         }
 
@@ -147,9 +157,9 @@
             font-size: 16px;
         }
         .logout-button:hover {
-            /* Style hover berbahaya (merah) */
-            background: #fee2e2;
-            color: #dc2626;
+            /* Style hover pakai theme color */
+            background: var(--theme-color, #3b82f6);
+            color: #fff;
         }
 
         /* --- HEADER TOP (DIHAPUS) --- */
@@ -275,13 +285,13 @@
         $pengaturan = \App\Models\Pengaturan::first();
     @endphp
 
-    @if(isset($pengaturan->logo) && $pengaturan->logo)
-        <img src="{{ $pengaturan->logo }}" alt="Logo" class="brand-logo">
-    @else
-        <i class="fa-solid fa-hospital brand-icon"></i>
-    @endif
 
-    <span class="brand-name">{{ $pengaturan->nama_instansi ?? 'Antrian Ruang Coding' }}</span>
+    @if(isset($pengaturan->logo) && $pengaturan->logo)
+        <img src="{{ asset('logo/' . $pengaturan->logo) }}" alt="Logo {{ $pengaturan->nama_instansi ?? 'Instansi' }}" class="brand-logo">
+    @else
+        <img src="{{ asset('img/logo.png') }}" alt="Logo Antrian Marhas" class="brand-logo">
+    @endif
+    <span class="brand-name">{{ $pengaturan->nama_instansi ?? 'Antrian Marhas' }}</span>
 </div>
 
         
@@ -314,6 +324,9 @@
                 </a></li>
                 <li><a href="{{ route('admin.pengaturan.index') }}" class="{{ request()->routeIs('admin.pengaturan.index') ? 'active' : '' }}">
                     <span class="icon"><i class="fa-solid fa-gear"></i></span> Pengaturan Sistem
+                </a></li>
+                <li><a href="{{ route('admin.audio_setting.index') }}" class="{{ request()->routeIs('admin.audio_setting.index') ? 'active' : '' }}">
+                    <span class="icon"><i class="fa-solid fa-volume-up"></i></span> Pengaturan Audio
                 </a></li>
                 <li><a href="{{ route('admin.advanced-settings.index') }}" class="{{ request()->routeIs('admin.advanced-settings.index') ? 'active' : '' }}">
                     <span class="icon"><i class="fa-solid fa-tv"></i></span> Display & Kiosk Settings

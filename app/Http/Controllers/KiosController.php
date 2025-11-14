@@ -19,8 +19,9 @@ class KiosController extends Controller
         $pengaturan = Pengaturan::first();
         // Hanya ambil layanan yang statusnya 'aktif'
         $layanans = Layanan::where('status', 'aktif')->orderBy('nama_layanan', 'asc')->get();
-        
-        return view('kios.index', compact('pengaturan', 'layanans'));
+        $advancedSetting = \App\Models\AdvancedSetting::first();
+        $themeColor = $advancedSetting->theme_color ?? '#3b82f6';
+        return view('kios.index', compact('pengaturan', 'layanans', 'themeColor'));
     }
 
     /**
@@ -30,6 +31,7 @@ class KiosController extends Controller
     {
         $request->validate([
             'layanan_id' => 'required|integer|exists:layanans,id',
+            'printer' => 'nullable|string',
         ]);
 
         $layanan = Layanan::find($request->layanan_id);
@@ -78,16 +80,19 @@ class KiosController extends Controller
         return response()->json([
             'success' => true,
             'antrian' => [
+                'id' => $antrian->id,
                 'kode_antrian' => $antrian->kode_antrian,
                 'nama_layanan' => $layanan->nama_layanan,
                 'waktu_ambil' => $antrian->waktu_ambil->format('d-m-Y H:i:s'),
+                'waktu_ambil_jam' => $antrian->waktu_ambil->format('H:i:s'),
             ],
             'instansi' => [
-                'nama' => $pengaturan->nama_instansi ?? 'Instansi Anda',
-                'alamat' => $pengaturan->alamat ?? '',
-                'telepon' => $pengaturan->telepon ?? '',
-                'logo' => $pengaturan->logo ? asset('storage/' . $pengaturan->logo) : null,
-            ]
+                'nama' => $pengaturan ? ($pengaturan->nama_instansi ?? 'Instansi Anda') : 'Instansi Anda',
+                'alamat' => $pengaturan ? ($pengaturan->alamat ?? '') : '',
+                'telepon' => $pengaturan ? ($pengaturan->telepon ?? '') : '',
+                'logo' => $pengaturan && $pengaturan->logo ? asset('logo/' . $pengaturan->logo) : null,
+            ],
+            'printer' => $request->printer,
         ]);
     }
 }

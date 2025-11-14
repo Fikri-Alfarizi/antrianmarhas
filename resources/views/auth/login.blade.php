@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistem Antrian</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/logo.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('img/logo.png') }}">
+    <link rel="icon" href="{{ asset('img/logo.png') }}">
+    @php
+        $themeColor = optional(\App\Models\AdvancedSetting::first())->theme_color ?? '#3b82f6';
+    @endphp
     <style>
+        :root {
+            --theme-color: {{ $themeColor }};
+        }
         /* Import Font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -31,7 +41,7 @@
 
         /* === 1. Kolom Kiri (Branding) === */
         .login-branding {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: var(--theme-color, #3b82f6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -148,7 +158,7 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.25s;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: var(--theme-color, #3b82f6);
             color: white;
             display: flex;
             align-items: center;
@@ -159,7 +169,7 @@
         }
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 6px 16px var(--theme-color, #3b82f6, 0.4);
         }
 
         /* Responsive */
@@ -185,7 +195,7 @@
         <div class="login-branding">
             <div class="brand-content">
                 <i class="fa-solid fa-hospital"></i>
-                <h2>Antrian Ruang Coding</h2>
+                <h2>Antrian Marhas</h2>
                 <p>Manajemen antrian modern, cepat, dan efisien untuk pelayanan publik yang lebih baik.</p>
             </div>
         </div>

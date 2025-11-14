@@ -99,22 +99,18 @@
         
         <div class="form-group" style="margin-bottom: 16px;">
             <label for="logoInput"><i class="fas fa-image"></i> Logo Instansi</label>
-            
-            @if($pengaturan && $pengaturan->logo)
-            <div class="preview-container">
-                <img src="{{ $pengaturan->logo }}" class="preview-logo" alt="Logo" id="logoPreview">
+
+            <div class="preview-container" id="logoPreviewContainer" style="{{ !($pengaturan && $pengaturan->logo) ? 'display:none;' : '' }}">
+                <img src="{{ $pengaturan && $pengaturan->logo ? asset('logo/' . $pengaturan->logo) : '' }}" class="preview-logo" alt="Logo" id="logoPreview" style="{{ !($pengaturan && $pengaturan->logo) ? 'display:none;' : '' }}">
                 <div class="preview-info">
-                    <p><strong>Logo Saat Ini (Online Storage).</strong> Pilih file baru di bawah untuk mengganti.</p>
+                    <p><strong>Logo Saat Ini.</strong> Pilih file baru di bawah untuk mengganti.</p>
                 </div>
             </div>
-            @else
-            <div class="logo-placeholder" id="logoPlaceholder">
+            <div class="logo-placeholder" id="logoPlaceholder" style="{{ $pengaturan && $pengaturan->logo ? 'display:none;' : '' }}">
                 <i class="fas fa-image"></i>
                 <p>Belum ada logo</p>
-                <img src="" class="preview-logo" alt="Preview Logo" id="logoPreview" style="display: none; margin-top: 15px;">
             </div>
-            @endif
-            
+
             <input type="file" name="logo" accept="image/*" id="logoInput">
             <small style="color: #64748b; font-size: 11px;">Pilih file baru untuk mengganti logo. Maks 2MB.</small>
         </div>
@@ -161,28 +157,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoInput = document.getElementById('logoInput');
     const logoPreview = document.getElementById('logoPreview');
     const logoPlaceholder = document.getElementById('logoPlaceholder');
+    const logoPreviewContainer = document.getElementById('logoPreviewContainer');
 
     if (logoInput) {
         logoInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
-            
             if (file) {
                 const reader = new FileReader();
-                
                 reader.onload = function(e) {
                     if (logoPreview) {
                         logoPreview.src = e.target.result;
                         logoPreview.style.display = 'block';
                     }
-                    
+                    if (logoPreviewContainer) {
+                        logoPreviewContainer.style.display = 'flex';
+                    }
                     if (logoPlaceholder) {
-                        // Sembunyikan icon dan text "Belum ada logo"
-                        logoPlaceholder.classList.add('has-preview');
-                        // Pastikan placeholder (yang sekarang berisi preview) terlihat
-                        logoPlaceholder.style.display = 'flex'; 
+                        logoPlaceholder.style.display = 'none';
                     }
                 };
-                
                 reader.readAsDataURL(file);
             }
         });

@@ -120,6 +120,7 @@
                     <th>Email</th>
                     <th>Role</th>
                     <th>Loket Ditugaskan</th>
+                    <th>Status Aktif</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -150,6 +151,13 @@
                         </span>
                     </td>
                     <td>{{ $user->loket->nama_loket ?? 'N/A' }}</td>
+                    <td style="text-align:center;">
+                        @if($user->id != 1)
+                        <input type="checkbox" class="toggle-aktif-user" data-user-id="{{ $user->id }}" {{ $user->aktif ? 'checked' : '' }}>
+                        @else
+                        <span style="color:#888;">-</span>
+                        @endif
+                    </td>
                     <td class="action-buttons">
                         <!-- LINK ke halaman EDIT -->
                         <a href="{{ route('admin.pengguna.edit', $user->id) }}" class="btn btn-edit">
@@ -180,6 +188,36 @@
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+document.querySelectorAll('.toggle-aktif-user').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+        const userId = this.getAttribute('data-user-id');
+        const aktif = this.checked ? 1 : 0;
+        fetch(`/admin/pengguna/aktif-toggle/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ aktif })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert('Gagal update status aktif!');
+                this.checked = !aktif;
+            }
+        })
+        .catch(() => {
+            alert('Gagal update status aktif!');
+            this.checked = !aktif;
+        });
+    });
+});
+</script>
 @endsection
 
 @section('scripts')

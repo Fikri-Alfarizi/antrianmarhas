@@ -14,11 +14,11 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin
+        // Admin SMK Marhas
         User::create([
-            'name' => 'Administrator',
+            'name' => 'Admin SMK Marhas',
             'username' => 'admin',
-            'email' => 'admin@marhas.com',
+            'email' => 'admin@smkmarhas.sch.id',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'loket_id' => null,
@@ -29,8 +29,8 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Petugas Loket 1',
             'username' => 'petugas1',
-            'email' => 'petugas1@marhas.com',
-            'password' => Hash::make('password'),
+            'email' => 'petugas1@smkmarhas.sch.id',
+            'password' => Hash::make('marhas123'),
             'role' => 'operator',
             'loket_id' => 1,
             'status' => 'aktif'
@@ -39,8 +39,8 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Petugas Loket 2',
             'username' => 'petugas2',
-            'email' => 'petugas2@marhas.com',
-            'password' => Hash::make('password'),
+            'email' => 'petugas2@smkmarhas.sch.id',
+            'password' => Hash::make('marhas123'),
             'role' => 'operator',
             'loket_id' => 2,
             'status' => 'aktif'

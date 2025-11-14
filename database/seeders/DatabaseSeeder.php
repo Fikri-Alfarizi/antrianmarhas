@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             AntrianSeeder::class,
             AudioSettingSeeder::class,
+            AdvancedSettingSeeder::class,
         ]);
     }
 }

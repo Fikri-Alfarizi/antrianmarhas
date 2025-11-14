@@ -38,6 +38,7 @@ Route::get('/', function () {
 // Display Ruang Tunggu (Real-time)
 Route::get('/display', [DisplayController::class, 'index'])->name('display.index');
 Route::get('/display/data', [DisplayController::class, 'getData'])->name('display.data');
+Route::get('/display/audio-settings', [DisplayController::class, 'getAudioSettings'])->name('display.audio-settings');
 
 // Kios Cetak Antrian (Halaman untuk pengunjung)
 Route::get('/kios', [KiosController::class, 'index'])->name('kios.index');
@@ -46,7 +47,9 @@ Route::get('/kios/wait-times', [KiosController::class, 'getWaitTimes'])->name('k
 // Status Antrian Pengunjung (QR Code Link)
 Route::get('/status', [StatusController::class, 'index'])->name('status.index');
 Route::get('/status/show', [StatusController::class, 'show'])->name('status.show');
-// Route::get('/antrian/status', [StatusController::class, 'waitingStatus'])->name('antrian.status'); // Dihapus, menggunakan /status/show atau /status
+
+// Custom route untuk riwayat antrian display
+require_once __DIR__.'/display_riwayat.php';
 
 // Rute yang TIDAK memerlukan CSRF Token (biasanya untuk API POST publik atau Kios)
 Route::withoutMiddleware('Illuminate\Foundation\Http\Middleware\VerifyCsrfToken')->group(function () {
@@ -79,6 +82,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::get('/advanced-settings', [AdvancedSettingController::class, 'index'])->name('advanced-settings.index');
     Route::post('/advanced-settings', [AdvancedSettingController::class, 'update'])->name('advanced-settings.update');
+    
+    // Audio Settings
+    Route::get('/audio-setting', [\App\Http\Controllers\Admin\AudioSettingController::class, 'index'])->name('audio_setting.index');
+    Route::post('/audio-setting', [\App\Http\Controllers\Admin\AudioSettingController::class, 'update'])->name('audio_setting.update');
+    Route::get('/audio-setting/get', [\App\Http\Controllers\Admin\AudioSettingController::class, 'getSettings'])->name('audio_setting.get');
+    Route::post('/audio-setting/test', [\App\Http\Controllers\Admin\AudioSettingController::class, 'testAudio'])->name('audio_setting.test');
 
     // Laporan & Monitoring
     Route::get('/antrian', [AntrianController::class, 'index'])->name('antrian.index');

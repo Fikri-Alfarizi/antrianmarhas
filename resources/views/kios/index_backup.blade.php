@@ -156,7 +156,7 @@
 
     <div class="kios-header px-3">
         @if ($pengaturan && $pengaturan->logo)
-            <img src="{{ asset('images/logo/' . $pengaturan->logo) }}" alt="Logo Instansi">
+            <img src="{{ asset('logo/' . $pengaturan->logo) }}" alt="Logo Instansi">
         @endif
         <h1>{{ $pengaturan->nama_instansi ?? 'Selamat Datang' }}</h1>
         <p class="lead">Silakan pilih layanan untuk mengambil nomor antrian.</p>

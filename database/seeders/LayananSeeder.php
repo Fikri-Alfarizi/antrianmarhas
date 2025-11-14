@@ -15,25 +15,25 @@ class LayananSeeder extends Seeder
     {
         $layanans = [
             [
-                'nama_layanan' => 'Pemeriksaan Umum',
+                'nama_layanan' => 'Administrasi Siswa',
                 'prefix' => 'A',
                 'digit' => 3,
                 'status' => 'aktif'
             ],
             [
-                'nama_layanan' => 'Kesehatan Ibu dan Anak',
+                'nama_layanan' => 'Pembayaran SPP',
                 'prefix' => 'B',
                 'digit' => 3,
                 'status' => 'aktif'
             ],
             [
-                'nama_layanan' => 'Keluarga Berencana',
+                'nama_layanan' => 'Layanan Konseling',
                 'prefix' => 'C',
                 'digit' => 3,
                 'status' => 'aktif'
             ],
             [
-                'nama_layanan' => 'Kesehatan Gigi dan Mulut',
+                'nama_layanan' => 'Pengambilan Ijazah',
                 'prefix' => 'D',
                 'digit' => 3,
                 'status' => 'aktif'

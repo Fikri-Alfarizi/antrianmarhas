@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ruang Coding Antrian - Kiosk Ruang Tunggu</title>
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/logo.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/logo.png') }}">
+<link rel="shortcut icon" href="{{ asset('img/logo.png') }}">
+<link rel="icon" href="{{ asset('img/logo.png') }}">
+<title>Antrian Marhas - Kiosk Ruang Tunggu</title>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
@@ -212,18 +216,20 @@
 
     /* Warna untuk status Ruangan */
     .room-card.status-memanggil {
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-        border-color: #3b82f6;
+        box-shadow: 0 0 20px {{ $themeColor ?? '#3b82f6' }}40;
+        border-color: {{ $themeColor ?? '#3b82f6' }};
         animation: pulse-ring 1.5s infinite;
     }
-    
     .room-card.status-tersedia {
-        border-color: #10b981;
+        border-color: {{ $themeColor ?? '#10b981' }};
     }
-    
     .room-card.status-dilayani {
         border-color: #f59e0b;
     }
+    .fullscreen-btn {
+        background: {{ $themeColor ?? '#2563eb' }};
+    }
+    .fullscreen-btn:hover { background: {{ $themeColor ?? '#1d4ed8' }}; }
 
     @keyframes pulse-ring {
         0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
@@ -501,14 +507,14 @@
     <header class="kiosk-header">
 <div class="kiosk-logo">
     @if(isset($pengaturan->logo) && $pengaturan->logo)
-        <img src="{{ $pengaturan->logo }}" alt="Logo" class="kiosk-logo-img">
+        <img src="{{ asset('logo/' . $pengaturan->logo) }}" alt="Logo" class="kiosk-logo-img">
     @else
         <i class="fa-solid fa-hospital"></i>
     @endif
 </div>
 
         <div class="kiosk-brand-info">
-            <h1 class="hospital-name">{{ $pengaturan->nama_instansi ?? 'Rumah Sakit' }}</h1>
+            <h1 class="hospital-name">{{ $pengaturan->nama_instansi ?? 'Antrian Marhas' }}</h1>
             <p class="hospital-address">{{ $pengaturan->alamat_instansi ?? 'Display Ruang Tunggu Real-time' }}</p>
         </div>
     </header>
@@ -532,16 +538,22 @@
 
 <div class="status-bar">
     <div class="status-indicator" id="statusIndicator"></div>
-    <span id="statusText">Memuat Status...</span>
+    <span id="statusText"><span id="clockRealtime">--:--:--</span></span>
+    <select id="clockModeSelect" style="margin-left:10px; font-size:12px; border-radius:6px; border:1px solid #ddd; padding:2px 6px;">
+        <option value="now" {{ ($displayClockMode ?? 'now') == 'now' ? 'selected' : '' }}>Jam Sekarang</option>
+        <option value="end" {{ ($displayClockMode ?? 'now') == 'end' ? 'selected' : '' }}>Jam Pulang</option>
+    </select>
 </div>
 
 <button class="fullscreen-btn" onclick="toggleFullscreen()">
-    <i class="fas fa-expand-arrows-alt"></i> <span id="fullscreenText">Tampilkan Layar Penuh</span>
+    <i class="fas fa-expand-arrows-alt"></i>
 </button>
 
 @vite(['resources/js/bootstrap.js'])
 
 <script>
+        const displayRefresh = {{ $displayRefresh ?? 5 }};
+        const jamTutup = '{{ $jamTutup ?? "17:00" }}';
     // ============================================================
     // SUPPRESS BROWSER EXTENSION MESSAGES (Safe to ignore)
     // ============================================================
@@ -880,14 +892,33 @@
     }
     
     /**
-     * Memperbarui informasi sidebar (Antrian Berikutnya)
+     * Mapping icon berdasarkan nama layanan
+     */
+    function getLayananIcon(nama) {
+        const n = nama.toLowerCase();
+        if (n.includes('umum')) return 'fa-user-md';
+        if (n.includes('anak')) return 'fa-baby';
+        if (n.includes('gigi')) return 'fa-tooth';
+        if (n.includes('kb') || n.includes('keluarga berencana')) return 'fa-venus-mars';
+        if (n.includes('ibu')) return 'fa-female';
+        if (n.includes('vaksin')) return 'fa-syringe';
+        if (n.includes('laboratorium')) return 'fa-vials';
+        if (n.includes('apotek')) return 'fa-pills';
+        if (n.includes('imunisasi')) return 'fa-syringe';
+        return 'fa-bell-concierge';
+    }
+
+    /**
+     * Memperbarui informasi sidebar (Daftar Layanan)
+     * Tanpa refresh otomatis - hanya update saat updateDisplay() dipanggil
      */
     function updateSidebarInfo(layananData) {
         // Build sidebar dari data API
         if (!layananData || layananData.length === 0) {
             serviceSidebar.innerHTML = `
-                <div class="service-card" style="flex: 1; text-align: center; justify-content: center;">
-                    <span class="service-name" style="margin: 0; color: #9ca3af;">Tidak ada layanan yang aktif.</span>
+                <div class="service-card" style="flex: 1; text-align: center; justify-content: center; min-height: 200px;">
+                    <i class="fa-solid fa-info-circle" style="font-size: 48px; color: #d1d5db; margin-bottom: 12px;"></i>
+                    <p style="margin: 0; color: #9ca3af; font-weight: 600;">Belum ada layanan</p>
                 </div>
             `;
             return;
@@ -899,11 +930,11 @@
             const loketAktif = layanan.loket_aktif || 0;
             const nextQueue = layanan.next_queue || 'Tidak ada antrian';
             const statusDotClass = loketAktif > 0 ? 'green' : 'red';
-            
+            const iconClass = getLayananIcon(layanan.nama_layanan);
             html += `
                 <div class="service-card" data-layanan-id="${layanan.id}" data-kode-layanan="${layanan.kode_layanan}">
                     <div class="service-header">
-                        <i class="fa-solid fa-bell-concierge service-icon default"></i>
+                        <i class="fa-solid ${iconClass} service-icon default"></i>
                         <span class="service-name">${layanan.nama_layanan}</span>
                     </div>
                     <div class="service-queue-info">
@@ -917,7 +948,6 @@
                 </div>
             `;
         });
-        
         serviceSidebar.innerHTML = html;
     }
 
@@ -989,7 +1019,7 @@
         updateDisplay();
         
         // Polling fallback (setiap 5 detik)
-        setInterval(updateDisplay, 5000);
+        setInterval(updateDisplay, displayRefresh * 1000);
         
         // Setup Laravel Echo listener
         if (typeof Echo !== 'undefined') {
@@ -1034,18 +1064,89 @@
      */
     function updateConnectionStatus(connected) {
         const indicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        
         if (connected) {
             indicator.classList.add('connected');
-            statusText.textContent = 'Terhubung (Real-time)';
         } else {
             indicator.classList.remove('connected');
-            statusText.textContent = 'Polling (5 detik)';
         }
     }
 
+    // ============================================================
+    // AUDIO SETTINGS REAL-TIME UPDATE (Echo/Pusher)
+    // ============================================================
+    function setupAudioSettingsListener() {
+        if (typeof Echo !== 'undefined') {
+            Echo.channel('audio-settings')
+                .listen('.audio.setting.updated', (e) => {
+                    console.log('[AUDIO SETTINGS] Update diterima via Echo:', e);
+                    
+                    // Update audio settings variables
+                    audioVolume = e.volume / 100 ?? 0.5;
+                    audioEnabled = e.aktif === true ? true : false;
+                    audioTipe = e.tipe ?? 'text-to-speech';
+                    audioLanguage = audioLanguageMap[e.bahasa ?? 'id'] || 'id-ID';
+                    audioFormatPesan = e.format_pesan ?? 'Nomor antrian {nomor} silakan menuju ke {lokasi}';
+                    
+                    console.log('[AUDIO SETTINGS] Updated:', {
+                        volume: audioVolume,
+                        enabled: audioEnabled,
+                        format: audioFormatPesan
+                    });
+                    
+                    // Show notification
+                    showToast('Pengaturan audio telah diperbarui', 'info', 3000);
+                })
+                .error((error) => {
+                    console.warn('[AUDIO SETTINGS] Error listening to audio settings:', error);
+                });
+        }
+    }
+
+    // Fetch audio settings periodically as fallback
+    async function fetchAudioSettings() {
+        try {
+            const response = await fetch('{{ route("display.audio-settings") }}');
+            if (!response.ok) throw new Error('Failed to fetch audio settings');
+            
+            const data = await response.json();
+            if (data.success && data.data) {
+                const settings = data.data;
+                audioVolume = settings.volume / 100 ?? 0.5;
+                audioEnabled = settings.aktif === true ? true : false;
+                audioTipe = settings.tipe ?? 'text-to-speech';
+                audioLanguage = audioLanguageMap[settings.bahasa ?? 'id'] || 'id-ID';
+                audioFormatPesan = settings.format_pesan ?? 'Nomor antrian {nomor} silakan menuju ke {lokasi}';
+                
+                console.log('[AUDIO SETTINGS] Fetched and updated:', settings);
+            }
+        } catch (error) {
+            console.warn('[AUDIO SETTINGS] Error fetching audio settings:', error);
+        }
+    }
+
+    // Jam real-time
+    function updateClock() {
+        const el = document.getElementById('clockRealtime');
+        const mode = document.getElementById('clockModeSelect')?.value || 'now';
+        if (!el) return;
+        const now = new Date();
+        const pad = n => n.toString().padStart(2, '0');
+        if (mode === 'end') {
+            el.textContent = jamTutup;
+        } else {
+            el.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    document.getElementById('clockModeSelect')?.addEventListener('change', updateClock);
     updateConnectionStatus(false); // Initial status update
+    
+    // Setup audio settings listeners
+    setupAudioSettingsListener();
+    
+    // Fetch audio settings every 30 seconds as fallback
+    setInterval(fetchAudioSettings, 30000);
 </script>
 </body>
 </html>

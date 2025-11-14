@@ -28,8 +28,15 @@ class DisplayController extends Controller
                 'bahasa' => 'id',
             ]
         );
-        
-        return view('display.index', compact('pengaturan', 'audioSetting'));
+
+        $advancedSetting = \App\Models\AdvancedSetting::first();
+        $themeColor = $advancedSetting->theme_color ?? '#3b82f6';
+        $displayRefresh = max(1, (int)($advancedSetting->display_refresh_seconds ?? 5));
+        $jamBuka = $advancedSetting->working_hours_start ? $advancedSetting->working_hours_start->format('H:i') : '08:00';
+        $jamTutup = $advancedSetting->working_hours_end ? $advancedSetting->working_hours_end->format('H:i') : '17:00';
+        $displayClockMode = $advancedSetting->display_clock_mode ?? 'now'; // now|end
+
+        return view('display.index', compact('pengaturan', 'audioSetting', 'themeColor', 'displayRefresh', 'jamBuka', 'jamTutup', 'displayClockMode'));
     }
 
     /**
@@ -73,6 +80,36 @@ class DisplayController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get current audio settings as JSON
+     */
+    public function getAudioSettings()
+    {
+        try {
+            $audioSetting = AudioSetting::firstOrCreate(
+                ['id' => 1],
+                [
+                    'tipe' => 'text-to-speech',
+                    'bahasa' => 'id',
+                    'volume' => 80,
+                    'aktif' => true,
+                    'format_pesan' => 'Nomor antrian {nomor} silakan menuju ke {lokasi} di SMK Marhas Margahayu',
+                    'voice_url' => null,
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => $audioSetting
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

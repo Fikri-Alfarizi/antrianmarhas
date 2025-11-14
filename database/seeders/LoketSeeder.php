@@ -11,29 +11,29 @@ class LoketSeeder extends Seeder
     {
         $lokets = [
             [
-                'nama_loket' => 'Ruang 1',
-                'layanan_id' => 1, // Pemeriksaan Umum
+                'nama_loket' => 'Loket Administrasi',
+                'layanan_id' => 1, // Administrasi Siswa
                 'status' => 'aktif',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'nama_loket' => 'Ruang 2',
-                'layanan_id' => 2, // Kesehatan Ibu dan Anak
+                'nama_loket' => 'Loket SPP',
+                'layanan_id' => 2, // Pembayaran SPP
                 'status' => 'aktif',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'nama_loket' => 'Ruang 3',
-                'layanan_id' => 3, // Keluarga Berencana
+                'nama_loket' => 'Loket Konseling',
+                'layanan_id' => 3, // Layanan Konseling
                 'status' => 'aktif',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'nama_loket' => 'Ruang 4',
-                'layanan_id' => 4, // Kesehatan Gigi dan Mulut
+                'nama_loket' => 'Loket Ijazah',
+                'layanan_id' => 4, // Pengambilan Ijazah
                 'status' => 'aktif',
                 'created_at' => now(),
                 'updated_at' => now(),

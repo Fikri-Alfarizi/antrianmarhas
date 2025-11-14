@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/logo.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/logo.png') }}">
     <title>Lacak Status Antrian</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -183,7 +185,7 @@
 <body>
     <div class="status-container">
         <div class="status-header">
-            <h1><i class="fas fa-hospital"></i> {{ $pengaturan->nama_instansi ?? 'Sistem Antrian' }}</h1>
+            <h1><img src="{{ asset('img/logo.png') }}" alt="Logo Antrian Marhas" style="height:32px;vertical-align:middle;margin-right:8px;"> Antrian Marhas</h1>
             <p>Lacak Status Antrian Anda</p>
         </div>
 
