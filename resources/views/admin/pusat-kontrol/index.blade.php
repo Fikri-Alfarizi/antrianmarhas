@@ -907,7 +907,7 @@
         if (!loket || !loket.waiting_count || loket.waiting_count === 0) {
             container.innerHTML = `
                 <div class="queue-item-empty">
-                    <i class="fa-regular fa-inbox" style="font-size: 20px; margin-bottom: 8px; display: block;"></i>
+                    <i class="fa-solid fa-bell-concierge" style="font-size: 20px; margin-bottom: 8px; display: block;"></i>
                     Tidak ada antrian menunggu
                 </div>
             `;
@@ -937,7 +937,7 @@
                 } else {
                     container.innerHTML = `
                         <div class="queue-item-empty">
-                            <i class="fa-regular fa-inbox" style="font-size: 20px; margin-bottom: 8px; display: block;"></i>
+                            <i class="fa-solid fa-bell-concierge" style="font-size: 20px; margin-bottom: 8px; display: block;"></i>
                             Tidak ada antrian menunggu
                         </div>
                     `;
