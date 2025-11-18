@@ -844,7 +844,7 @@
             } else {
                 roomStatusClass = 'status-tersedia';
                 roomBodyContent = `
-                    <i class="fa-regular fa-user-clock body-empty"></i>
+                    <i class="fa-solid fa-bell-concierge body-empty"></i>
                     <p class="body-status">Tersedia</p>
                     <p class="body-subtext">Menunggu antrian berikutnya</p>
                 `;
@@ -859,7 +859,7 @@
             // Loket buka tapi tidak ada antrian yang sedang dipanggil/dilayani
             roomStatusClass = 'status-tersedia';
             roomBodyContent = `
-                <i class="fa-regular fa-user-clock body-empty"></i>
+                <i class="fa-solid fa-bell-concierge body-empty"></i>
                 <p class="body-status">Tersedia</p>
                 <p class="body-subtext">Menunggu panggilan antrian</p>
             `;
